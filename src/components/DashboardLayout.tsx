@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import AIChatSidebar from "@/components/AIChatSidebar";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const { signOut } = useAuth();
@@ -20,6 +21,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           </header>
           <main className="flex-1 overflow-auto p-6">{children}</main>
         </div>
+        <AIChatSidebar />
       </div>
     </SidebarProvider>
   );
