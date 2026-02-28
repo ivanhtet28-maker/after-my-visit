@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Mic, Square, Pause, Play, CalendarIcon, Loader2, CheckCircle2, FileText, ClipboardCheck, Stethoscope, Pill, ArrowRight, MessageSquare } from "lucide-react";
+import { Mic, Square, Pause, Play, CalendarIcon, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -22,28 +22,6 @@ const visitTypes = [
   { value: "telehealth", label: "Telehealth" },
   { value: "emergency", label: "Emergency" },
 ];
-
-// Mock summary data for MVP
-const mockSummary = {
-  keyPoints: ["Discussed ongoing lower back pain", "Reviewed recent blood test results", "Discussed sleep quality and stress levels"],
-  diagnosis: "Mild lumbar strain with associated muscle tension. Blood results within normal range.",
-  medications: [
-    { name: "Ibuprofen", dosage: "400mg", frequency: "Twice daily with food", explanation: "Anti-inflammatory to reduce pain and swelling in your lower back" },
-    { name: "Paracetamol", dosage: "500mg", frequency: "As needed, up to 4 times daily", explanation: "Pain relief for when the ibuprofen isn't enough on its own" },
-  ],
-  actionItems: [
-    { description: "Book physiotherapy appointment", due: "Within 2 weeks", category: "referral" },
-    { description: "Fill ibuprofen script at pharmacy", due: "Today", category: "medication" },
-    { description: "Schedule follow-up GP visit", due: "In 4 weeks", category: "follow_up" },
-    { description: "Get blood test for iron levels", due: "In 2 weeks", category: "test" },
-  ],
-  referrals: [{ to: "PhysioWorks", type: "Physiotherapy", notes: "6 sessions, focus on core strengthening" }],
-  suggestedQuestions: [
-    "Should I avoid any specific exercises?",
-    "Are there any side effects I should watch for with ibuprofen?",
-    "When should I be concerned about the pain?",
-  ],
-};
 
 const NewVisitPage = () => {
   const { user } = useAuth();
@@ -65,12 +43,13 @@ const NewVisitPage = () => {
 
   // Processing state
   const [processingStep, setProcessingStep] = useState(0);
+  const [processingStatus, setProcessingStatus] = useState("");
   const [visitId, setVisitId] = useState<string | null>(null);
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -110,14 +89,23 @@ const NewVisitPage = () => {
     return new Promise<void>((resolve) => {
       mediaRecorderRef.current!.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        const fileName = `${user.id}/${Date.now()}.webm`;
+        const filePath = `${user.id}/${Date.now()}.webm`;
+
+        setStep(3);
+        setProcessingStep(1);
+        setProcessingStatus("Uploading recording...");
 
         // Upload to storage
         const { error: uploadError } = await supabase.storage
           .from("visit-recordings")
-          .upload(fileName, blob);
+          .upload(filePath, blob);
 
-        const recordingUrl = uploadError ? null : fileName;
+        if (uploadError) {
+          toast.error("Failed to upload recording: " + uploadError.message);
+          setStep(2);
+          resolve();
+          return;
+        }
 
         // Create visit record
         const { data, error } = await supabase.from("visits").insert({
@@ -126,17 +114,55 @@ const NewVisitPage = () => {
           clinic_name: clinicName,
           visit_type: visitType,
           visit_date: format(visitDate, "yyyy-MM-dd"),
-          recording_url: recordingUrl,
+          recording_url: filePath,
           recording_duration: duration,
           status: "processing",
         }).select().single();
 
-        if (error) {
+        if (error || !data) {
           toast.error("Failed to save visit");
-        } else if (data) {
-          setVisitId(data.id);
-          setStep(3);
-          simulateProcessing(data.id);
+          setStep(2);
+          resolve();
+          return;
+        }
+
+        const vId = data.id;
+        setVisitId(vId);
+
+        // Step 2: Transcribe
+        setProcessingStep(2);
+        setProcessingStatus("Transcribing your visit...");
+
+        try {
+          const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke("transcribe", {
+            body: { visit_id: vId, recording_url: filePath },
+          });
+
+          if (transcribeError || !transcribeData?.success) {
+            throw new Error(transcribeData?.error || transcribeError?.message || "Transcription failed");
+          }
+
+          // Step 3: Summarise
+          setProcessingStep(3);
+          setProcessingStatus("Generating summary...");
+
+          const { data: summaryData, error: summaryError } = await supabase.functions.invoke("summarise", {
+            body: { visit_id: vId },
+          });
+
+          if (summaryError || !summaryData?.success) {
+            throw new Error(summaryData?.error || summaryError?.message || "Summary generation failed");
+          }
+
+          // Done!
+          setProcessingStep(4);
+          setProcessingStatus("Done!");
+          
+          setTimeout(() => navigate(`/visit/${vId}`), 1000);
+        } catch (err: any) {
+          toast.error(err.message || "Processing failed. You can view the visit later.");
+          // Still redirect to visit page even on partial failure
+          setTimeout(() => navigate(`/visit/${vId}`), 2000);
         }
 
         // Stop all tracks
@@ -145,55 +171,7 @@ const NewVisitPage = () => {
       };
       mediaRecorderRef.current!.stop();
     });
-  }, [user, doctorName, clinicName, visitType, visitDate, duration]);
-
-  const simulateProcessing = async (vId: string) => {
-    if (!user) return;
-    setProcessingStep(1);
-    await new Promise((r) => setTimeout(r, 1200));
-    setProcessingStep(2);
-    await new Promise((r) => setTimeout(r, 1200));
-    setProcessingStep(3);
-    await new Promise((r) => setTimeout(r, 1000));
-
-    // Save mock summary and action items
-    await supabase.from("visits").update({
-      summary: mockSummary as any,
-      status: "complete",
-    }).eq("id", vId);
-
-    // Create action items
-    const today = new Date();
-    for (const item of mockSummary.actionItems) {
-      const dueDate = new Date(today);
-      if (item.due.includes("2 weeks")) dueDate.setDate(today.getDate() + 14);
-      else if (item.due.includes("4 weeks")) dueDate.setDate(today.getDate() + 28);
-
-      await supabase.from("action_items").insert({
-        user_id: user.id,
-        visit_id: vId,
-        description: item.description,
-        due_date: format(dueDate, "yyyy-MM-dd"),
-        category: item.category,
-      });
-    }
-
-    // Create medications
-    for (const med of mockSummary.medications) {
-      await supabase.from("medications").insert({
-        user_id: user.id,
-        visit_id: vId,
-        name: med.name,
-        dosage: med.dosage,
-        frequency: med.frequency,
-        prescribing_doctor: doctorName,
-        date_prescribed: format(visitDate, "yyyy-MM-dd"),
-        plain_explanation: med.explanation,
-      });
-    }
-
-    setStep(4);
-  };
+  }, [user, doctorName, clinicName, visitType, visitDate, duration, navigate]);
 
   const formatDuration = (s: number) => {
     const m = Math.floor(s / 60);
@@ -291,7 +269,6 @@ const NewVisitPage = () => {
             {isRecording && (
               <p className="mb-6 text-3xl font-mono font-bold text-foreground">{formatDuration(duration)}</p>
             )}
-            {/* Waveform */}
             {isRecording && !isPaused && (
               <div className="mb-8 flex items-end gap-1">
                 {Array.from({ length: 20 }).map((_, i) => (
@@ -331,111 +308,18 @@ const NewVisitPage = () => {
         {step === 3 && (
           <div className="flex flex-col items-center rounded-xl border bg-card p-12 shadow-card">
             <Loader2 className="mb-6 h-12 w-12 animate-spin text-primary" />
+            <p className="mb-4 text-lg font-medium text-foreground">{processingStatus}</p>
             <div className="space-y-3 text-center">
               {[
-                { step: 1, text: "Transcribing your visit..." },
-                { step: 2, text: "Generating summary..." },
-                { step: 3, text: "Extracting action items..." },
+                { step: 1, text: "Uploading recording..." },
+                { step: 2, text: "Transcribing your visit..." },
+                { step: 3, text: "Generating summary..." },
+                { step: 4, text: "Done! Redirecting..." },
               ].map((p) => (
                 <p key={p.step} className={`text-sm ${processingStep >= p.step ? "font-medium text-foreground" : "text-muted-foreground"}`}>
                   {processingStep > p.step ? "✓ " : ""}{p.text}
                 </p>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 4: Summary */}
-        {step === 4 && (
-          <div className="space-y-6">
-            {/* Visit Overview */}
-            <div className="rounded-xl border bg-card p-6 shadow-card">
-              <div className="mb-3 flex items-center gap-2">
-                <Stethoscope className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-card-foreground">Visit Overview</h3>
-              </div>
-              <div className="grid gap-2 text-sm sm:grid-cols-2">
-                <p><span className="text-muted-foreground">Doctor:</span> {doctorName}</p>
-                <p><span className="text-muted-foreground">Clinic:</span> {clinicName}</p>
-                <p><span className="text-muted-foreground">Date:</span> {format(visitDate, "dd/MM/yyyy")}</p>
-                <p><span className="text-muted-foreground">Duration:</span> {formatDuration(duration)}</p>
-              </div>
-            </div>
-
-            {/* Key Discussion Points */}
-            <div className="rounded-xl border bg-card p-6 shadow-card">
-              <div className="mb-3 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-card-foreground">Key Discussion Points</h3>
-              </div>
-              <ul className="space-y-2">
-                {mockSummary.keyPoints.map((p, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Diagnosis */}
-            <div className="rounded-xl border bg-card p-6 shadow-card">
-              <div className="mb-3 flex items-center gap-2">
-                <Stethoscope className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-card-foreground">Diagnosis / Assessment</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">{mockSummary.diagnosis}</p>
-            </div>
-
-            {/* Medications */}
-            <div className="rounded-xl border bg-card p-6 shadow-card">
-              <div className="mb-3 flex items-center gap-2">
-                <Pill className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-card-foreground">Medications</h3>
-              </div>
-              <div className="space-y-4">
-                {mockSummary.medications.map((m) => (
-                  <div key={m.name} className="rounded-lg border p-4">
-                    <p className="font-medium text-card-foreground">{m.name} — {m.dosage}</p>
-                    <p className="text-sm text-muted-foreground">{m.frequency}</p>
-                    <p className="mt-1 text-sm text-primary">{m.explanation}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Items */}
-            <div className="rounded-xl border bg-card p-6 shadow-card">
-              <div className="mb-3 flex items-center gap-2">
-                <ClipboardCheck className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-card-foreground">Action Items</h3>
-              </div>
-              <div className="space-y-2">
-                {mockSummary.actionItems.map((a, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-lg border p-3">
-                    <p className="text-sm text-card-foreground">{a.description}</p>
-                    <span className="text-xs text-muted-foreground">{a.due}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Suggested Questions */}
-            <div className="rounded-xl border bg-card p-6 shadow-card">
-              <div className="mb-3 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-card-foreground">Questions for Next Visit</h3>
-              </div>
-              <ul className="space-y-2">
-                {mockSummary.suggestedQuestions.map((q, i) => (
-                  <li key={i} className="text-sm text-muted-foreground">• {q}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate("/visits")}>View All Visits</Button>
-              <Button onClick={() => visitId && navigate(`/visit/${visitId}`)}>View Full Detail</Button>
             </div>
           </div>
         )}

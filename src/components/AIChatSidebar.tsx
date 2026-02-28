@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,11 +35,20 @@ const AIChatSidebar = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
   const isVisitDetail = location.pathname.startsWith("/visit/") && location.pathname !== "/visit/new";
+  const visitId = isVisitDetail ? location.pathname.split("/visit/")[1] : undefined;
+
   const contextText = isVisitDetail
     ? "Ask about this visit"
     : contextualText[location.pathname] || "Ask me anything about your health";
+
+  const contextType = isVisitDetail ? "visit_summary" : (
+    location.pathname === "/dashboard" || location.pathname === "/visits" || location.pathname === "/actions" || location.pathname === "/medications"
+      ? "patient_record"
+      : "general"
+  );
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -45,25 +56,41 @@ const AIChatSidebar = () => {
     }
   }, [messages]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || !user) return;
     const userMsg: Message = { role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: {
+          visit_id: visitId,
+          user_id: user.id,
+          message: text,
+          context_type: contextType,
+        },
+      });
+
+      if (error) throw error;
+
       const reply: Message = {
         role: "assistant",
-        content:
-          "That's a great question! Based on your visit history, I'd recommend discussing this with your doctor at your next appointment. In the meantime, make sure you're following through on your action items and taking medications as prescribed. Is there anything else you'd like to know?",
+        content: data?.response || "I'm sorry, I couldn't generate a response. Please try again.",
       };
       setMessages((prev) => [...prev, reply]);
-      setIsTyping(false);
-    }, 1200);
+    } catch {
+      // Fallback response
+      const reply: Message = {
+        role: "assistant",
+        content: "That's a great question! Based on your visit history, I'd recommend discussing this with your doctor at your next appointment. In the meantime, make sure you're following through on your action items and taking medications as prescribed. Is there anything else you'd like to know?",
+      };
+      setMessages((prev) => [...prev, reply]);
+    }
+    setIsTyping(false);
   };
 
-  // Mobile: floating bubble + fullscreen overlay
   if (isMobile) {
     return (
       <>
@@ -88,13 +115,7 @@ const AIChatSidebar = () => {
               </Button>
             </div>
             <p className="border-b px-4 py-2 text-sm text-muted-foreground">{contextText}</p>
-            <ChatBody
-              messages={messages}
-              isTyping={isTyping}
-              scrollRef={scrollRef}
-              suggestedQuestions={suggestedQuestions}
-              onSuggest={sendMessage}
-            />
+            <ChatBody messages={messages} isTyping={isTyping} scrollRef={scrollRef} suggestedQuestions={suggestedQuestions} onSuggest={sendMessage} />
             <ChatInput input={input} setInput={setInput} onSend={() => sendMessage(input)} />
           </div>
         )}
@@ -102,7 +123,6 @@ const AIChatSidebar = () => {
     );
   }
 
-  // Desktop: collapsible right panel
   return (
     <>
       {!open && (
@@ -130,13 +150,7 @@ const AIChatSidebar = () => {
           </Button>
         </div>
         <p className="border-b px-4 py-2 text-sm text-muted-foreground">{contextText}</p>
-        <ChatBody
-          messages={messages}
-          isTyping={isTyping}
-          scrollRef={scrollRef}
-          suggestedQuestions={suggestedQuestions}
-          onSuggest={sendMessage}
-        />
+        <ChatBody messages={messages} isTyping={isTyping} scrollRef={scrollRef} suggestedQuestions={suggestedQuestions} onSuggest={sendMessage} />
         <ChatInput input={input} setInput={setInput} onSend={() => sendMessage(input)} />
       </div>
     </>
@@ -144,17 +158,9 @@ const AIChatSidebar = () => {
 };
 
 function ChatBody({
-  messages,
-  isTyping,
-  scrollRef,
-  suggestedQuestions,
-  onSuggest,
+  messages, isTyping, scrollRef, suggestedQuestions, onSuggest,
 }: {
-  messages: Message[];
-  isTyping: boolean;
-  scrollRef: React.RefObject<HTMLDivElement>;
-  suggestedQuestions: string[];
-  onSuggest: (q: string) => void;
+  messages: Message[]; isTyping: boolean; scrollRef: React.RefObject<HTMLDivElement>; suggestedQuestions: string[]; onSuggest: (q: string) => void;
 }) {
   return (
     <ScrollArea className="flex-1 p-4" ref={scrollRef as any}>
@@ -162,11 +168,7 @@ function ChatBody({
         <div className="space-y-2">
           <p className="mb-3 text-xs font-medium text-muted-foreground">Suggested questions</p>
           {suggestedQuestions.map((q) => (
-            <button
-              key={q}
-              onClick={() => onSuggest(q)}
-              className="block w-full rounded-lg border bg-background p-3 text-left text-sm text-card-foreground transition-colors hover:bg-muted"
-            >
+            <button key={q} onClick={() => onSuggest(q)} className="block w-full rounded-lg border bg-background p-3 text-left text-sm text-card-foreground transition-colors hover:bg-muted">
               {q}
             </button>
           ))}
@@ -174,14 +176,7 @@ function ChatBody({
       )}
       <div className="space-y-3">
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`rounded-lg p-3 text-sm ${
-              m.role === "user"
-                ? "ml-4 bg-primary/10 text-card-foreground"
-                : "mr-4 bg-muted text-muted-foreground"
-            }`}
-          >
+          <div key={i} className={`rounded-lg p-3 text-sm ${m.role === "user" ? "ml-4 bg-primary/10 text-card-foreground" : "mr-4 bg-muted text-muted-foreground"}`}>
             {m.content}
           </div>
         ))}
@@ -199,31 +194,14 @@ function ChatBody({
   );
 }
 
-function ChatInput({
-  input,
-  setInput,
-  onSend,
-}: {
-  input: string;
-  setInput: (v: string) => void;
-  onSend: () => void;
-}) {
+function ChatInput({ input, setInput, onSend }: { input: string; setInput: (v: string) => void; onSend: () => void }) {
   return (
     <div className="border-t p-3">
       <div className="flex gap-2">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask anything..."
-          onKeyDown={(e) => e.key === "Enter" && onSend()}
-        />
-        <Button size="icon" onClick={onSend}>
-          <Send className="h-4 w-4" />
-        </Button>
+        <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask anything..." onKeyDown={(e) => e.key === "Enter" && onSend()} />
+        <Button size="icon" onClick={onSend}><Send className="h-4 w-4" /></Button>
       </div>
-      <p className="mt-2 text-center text-[10px] text-muted-foreground">
-        AfterVisit does not provide medical advice.
-      </p>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">AfterVisit does not provide medical advice.</p>
     </div>
   );
 }

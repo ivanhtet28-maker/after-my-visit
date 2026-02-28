@@ -6,6 +6,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,50 +19,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Stethoscope, FileText, Pill, ClipboardCheck, MessageSquare, Send, ArrowLeft, ChevronDown, Sparkles, AlertCircle, ListOrdered, Clipboard,
+  Stethoscope, FileText, Pill, ClipboardCheck, MessageSquare, Send, ArrowLeft, ChevronDown, Sparkles, AlertCircle, ListOrdered, Clipboard, AlertTriangle, BookOpen, HelpCircle, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
-
-// Mock medical terms dictionary
-const medicalTerms: Record<string, string> = {
-  "hypertension": "High blood pressure — when the force of blood against your artery walls is consistently too high.",
-  "hyperlipidaemia": "High levels of fats (like cholesterol) in your blood, which can increase heart disease risk.",
-  "metformin": "A medication used to control blood sugar levels in type 2 diabetes.",
-  "HbA1c": "A blood test showing your average blood sugar over the past 2–3 months.",
-  "CBC": "Complete Blood Count — a test that checks the levels of different cells in your blood.",
-  "referral": "A recommendation from your doctor to see a specialist for further care.",
-  "prognosis": "The likely course or outcome of a medical condition.",
-  "pathology": "Laboratory testing of blood, tissue, or other body samples to diagnose disease.",
-  "bilateral": "Affecting both sides of the body.",
-  "chronic": "A condition that lasts for a long time or keeps coming back.",
-  "acute": "A condition that comes on quickly and may be severe, but is usually short-lived.",
-  "benign": "Not harmful or cancerous.",
-  "inflammation": "Swelling, redness, and pain — your body's response to injury or infection.",
-};
-
-function highlightTerms(text: string) {
-  if (!text) return text;
-  const regex = new RegExp(`\\b(${Object.keys(medicalTerms).join("|")})\\b`, "gi");
-  const parts = text.split(regex);
-  return parts.map((part, i) => {
-    const lower = part.toLowerCase();
-    if (medicalTerms[lower]) {
-      return (
-        <Tooltip key={i}>
-          <TooltipTrigger asChild>
-            <span className="cursor-help border-b border-dashed border-primary text-primary font-medium">
-              {part}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
-            <p className="text-sm">{medicalTerms[lower]}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    }
-    return part;
-  });
-}
 
 interface SectionProps {
   icon: React.ElementType;
@@ -102,6 +63,57 @@ function CollapsibleSection({ icon: Icon, title, children, defaultOpen = false, 
   );
 }
 
+function createTermHighlighter(termsArray?: Array<{ term: string; explanation: string }>) {
+  const termsMap: Record<string, string> = {};
+
+  // Built-in fallback terms
+  const fallbackTerms: Record<string, string> = {
+    hypertension: "High blood pressure — when the force of blood against your artery walls is consistently too high.",
+    HbA1c: "A blood test showing your average blood sugar over the past 2–3 months.",
+    eGFR: "Estimated Glomerular Filtration Rate — a blood test that measures how well your kidneys are filtering waste.",
+    pathology: "Laboratory testing of blood, tissue, or other body samples to diagnose disease.",
+    chronic: "A condition that lasts for a long time or keeps coming back.",
+    inflammation: "Swelling, redness, and pain — your body's response to injury or infection.",
+  };
+
+  // Add summary terms
+  if (termsArray) {
+    for (const t of termsArray) {
+      termsMap[t.term.toLowerCase()] = t.explanation;
+    }
+  }
+
+  // Merge with fallbacks (summary terms take priority)
+  const allTerms = { ...fallbackTerms, ...termsMap };
+
+  return function highlightTerms(text: string) {
+    if (!text || typeof text !== "string") return text;
+    const keys = Object.keys(allTerms);
+    if (keys.length === 0) return text;
+
+    const regex = new RegExp(`\\b(${keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})\\b`, "gi");
+    const parts = text.split(regex);
+    return parts.map((part, i) => {
+      const lower = part.toLowerCase();
+      if (allTerms[lower]) {
+        return (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <span className="cursor-help border-b border-dashed border-primary text-primary font-medium">
+                {part}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="text-sm">{allTerms[lower]}</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      }
+      return part;
+    });
+  };
+}
+
 const VisitDetailPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -111,6 +123,7 @@ const VisitDetailPage = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(true);
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -141,15 +154,37 @@ const VisitDetailPage = () => {
   const sendQuestion = async (prefill?: string) => {
     const text = prefill || question;
     if (!text.trim() || !user || !id) return;
-    await supabase.from("chat_messages").insert({ user_id: user.id, visit_id: id, role: "user", content: text });
+
+    // Optimistically add user message
     setMessages((prev) => [...prev, { role: "user", content: text, created_at: new Date().toISOString() }]);
     if (!prefill) setQuestion("");
+    setChatLoading(true);
 
-    setTimeout(async () => {
-      const reply = "Based on your visit summary, that's a great question. I'd recommend discussing this with your doctor at your next follow-up. In the meantime, make sure to follow the action items from your visit.";
-      await supabase.from("chat_messages").insert({ user_id: user.id, visit_id: id, role: "assistant", content: reply });
+    try {
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: {
+          visit_id: id,
+          user_id: user.id,
+          message: text,
+          context_type: "visit_summary",
+        },
+      });
+
+      if (error) throw error;
+
+      const reply = data?.response || "I'm sorry, I couldn't generate a response. Please try again.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply, created_at: new Date().toISOString() }]);
-    }, 1000);
+    } catch (err: any) {
+      const errorMsg = err?.message || "Failed to get AI response";
+      if (errorMsg.includes("rate") || errorMsg.includes("limit")) {
+        toast.error("You've reached the free tier message limit. Upgrade to Plus for unlimited AI chat.");
+      } else {
+        // Fallback to local response
+        const fallback = "Based on your visit summary, that's a great question. I'd recommend discussing this with your doctor at your next follow-up. In the meantime, make sure to follow the action items from your visit.";
+        setMessages((prev) => [...prev, { role: "assistant", content: fallback, created_at: new Date().toISOString() }]);
+      }
+    }
+    setChatLoading(false);
   };
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -158,6 +193,7 @@ const VisitDetailPage = () => {
   if (!visit) return <DashboardLayout><p className="text-muted-foreground">Visit not found.</p></DashboardLayout>;
 
   const summary = visit.summary as any;
+  const highlightTerms = createTermHighlighter(summary?.medical_terms);
 
   return (
     <DashboardLayout>
@@ -165,6 +201,18 @@ const VisitDetailPage = () => {
         <Button variant="ghost" onClick={() => navigate("/visits")} className="gap-2 text-muted-foreground">
           <ArrowLeft className="h-4 w-4" /> Back to visits
         </Button>
+
+        {/* Urgency Flags */}
+        {summary?.urgency_flags?.length > 0 && (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              {summary.urgency_flags.map((flag: string, i: number) => (
+                <p key={i} className="text-sm font-medium">{flag}</p>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Quick Summary — always visible */}
         <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6 shadow-card">
@@ -176,26 +224,31 @@ const VisitDetailPage = () => {
             <p><span className="text-muted-foreground">Doctor:</span> {visit.doctor_name}</p>
             <p><span className="text-muted-foreground">Clinic:</span> {visit.clinic_name}</p>
             <p><span className="text-muted-foreground">Date:</span> {formatDate(visit.visit_date)}</p>
-            <p><span className="text-muted-foreground">Type:</span> {visit.visit_type}</p>
+            <p><span className="text-muted-foreground">Type:</span> <span className="capitalize">{visit.visit_type}</span></p>
           </div>
-          {summary?.diagnosis && (
+          {summary?.quick_summary && (
+            <p className="mt-3 text-sm text-muted-foreground">{highlightTerms(summary.quick_summary)}</p>
+          )}
+          {/* Fallback for old format */}
+          {!summary?.quick_summary && summary?.diagnosis && (
             <p className="mt-3 text-sm text-muted-foreground">{highlightTerms(summary.diagnosis)}</p>
           )}
         </div>
 
-        {/* Collapsible Clinical Sections */}
-        {summary?.chiefComplaint && (
+        {/* Chief Complaint */}
+        {summary?.chief_complaint && (
           <CollapsibleSection
             icon={Stethoscope}
             title="Chief Complaint"
             defaultOpen
-            onAskAI={() => sendQuestion(`Explain the chief complaint: "${summary.chiefComplaint}"`)}
+            onAskAI={() => sendQuestion(`Explain the chief complaint: "${summary.chief_complaint}"`)}
           >
-            <p className="text-sm text-muted-foreground">{highlightTerms(summary.chiefComplaint)}</p>
+            <p className="text-sm text-muted-foreground">{highlightTerms(summary.chief_complaint)}</p>
           </CollapsibleSection>
         )}
 
-        {summary?.keyPoints && (
+        {/* Key Discussion Points */}
+        {(summary?.key_discussion_points || summary?.keyPoints) && (
           <CollapsibleSection
             icon={FileText}
             title="Key Discussion Points"
@@ -203,7 +256,7 @@ const VisitDetailPage = () => {
             onAskAI={() => sendQuestion("Explain the key discussion points from my visit")}
           >
             <ul className="space-y-2">
-              {summary.keyPoints.map((p: string, i: number) => (
+              {(summary.key_discussion_points || summary.keyPoints)?.map((p: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />{highlightTerms(p)}
                 </li>
@@ -212,50 +265,76 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
-        {summary?.diagnosis && (
+        {/* Assessment */}
+        {summary?.assessment && (
           <CollapsibleSection
             icon={Stethoscope}
             title="Assessment"
-            onAskAI={() => sendQuestion(`Explain this diagnosis in simple terms: "${summary.diagnosis}"`)}
+            onAskAI={() => sendQuestion(`Explain this assessment in simple terms: "${summary.assessment}"`)}
           >
-            <p className="text-sm text-muted-foreground">{highlightTerms(summary.diagnosis)}</p>
+            <p className="text-sm text-muted-foreground">{highlightTerms(summary.assessment)}</p>
           </CollapsibleSection>
         )}
 
+        {/* Plan */}
         {summary?.plan && (
           <CollapsibleSection
             icon={Clipboard}
             title="Plan"
             onAskAI={() => sendQuestion("Explain the treatment plan from my visit")}
           >
-            <p className="text-sm text-muted-foreground">{highlightTerms(summary.plan)}</p>
+            {Array.isArray(summary.plan) ? (
+              <ul className="space-y-2">
+                {summary.plan.map((item: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />{highlightTerms(item)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">{highlightTerms(summary.plan)}</p>
+            )}
           </CollapsibleSection>
         )}
 
-        {summary?.recommendations && (
+        {/* Doctor's Recommendations */}
+        {summary?.doctors_recommendations && (
           <CollapsibleSection
             icon={ListOrdered}
             title="Doctor's Recommendations"
             onAskAI={() => sendQuestion("Explain the doctor's recommendations")}
           >
-            <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-              {summary.recommendations.map((r: string, i: number) => (
-                <li key={i}>{highlightTerms(r)}</li>
+            <ol className="space-y-3">
+              {summary.doctors_recommendations.map((r: any, i: number) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {r.number || i + 1}
+                  </span>
+                  <span>{highlightTerms(r.text || r)}</span>
+                </li>
               ))}
             </ol>
           </CollapsibleSection>
         )}
 
-        {summary?.medications && (
+        {/* Medications */}
+        {summary?.medications && summary.medications.length > 0 && (
           <CollapsibleSection
             icon={Pill}
             title="Medications Prescribed"
             onAskAI={() => sendQuestion("Explain all the medications prescribed in this visit")}
           >
             <div className="space-y-3">
-              {summary.medications.map((m: any) => (
-                <div key={m.name} className="rounded-lg border p-4">
-                  <p className="font-medium text-card-foreground">{highlightTerms(m.name)} — {m.dosage}</p>
+              {summary.medications.map((m: any, i: number) => (
+                <div key={i} className="rounded-lg border p-4">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-card-foreground">{highlightTerms(m.name)} — {m.dosage}</p>
+                    {m.is_pbs ? (
+                      <Badge className="bg-success/10 text-success border-success/20 text-xs">PBS ✓</Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">Non-PBS</Badge>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">{m.frequency}</p>
                   <p className="mt-1 text-sm text-primary">{m.explanation}</p>
                 </div>
@@ -264,7 +343,26 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
-        {/* Action Items — collapsible with checkboxes */}
+        {/* Referrals */}
+        {summary?.referrals?.length > 0 && (
+          <CollapsibleSection
+            icon={UserPlus}
+            title="Referrals"
+            onAskAI={() => sendQuestion("Tell me about the referrals from my visit")}
+          >
+            <div className="space-y-3">
+              {summary.referrals.map((r: any, i: number) => (
+                <div key={i} className="rounded-lg border p-4">
+                  <p className="font-medium text-card-foreground">To: {r.to}</p>
+                  <p className="text-sm text-muted-foreground">Reason: {r.reason}</p>
+                  <p className="mt-1 text-sm text-primary">Next steps: {r.next_steps}</p>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Action Items */}
         <CollapsibleSection icon={ClipboardCheck} title="Next Actions" defaultOpen>
           {actions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No action items for this visit.</p>
@@ -276,12 +374,39 @@ const VisitDetailPage = () => {
                   <p className={`flex-1 text-sm ${a.status === "complete" ? "text-muted-foreground line-through" : "text-card-foreground"}`}>
                     {a.description}
                   </p>
+                  {a.category && (
+                    <Badge variant="secondary" className="text-xs capitalize">{a.category.replace("_", " ")}</Badge>
+                  )}
                   {a.due_date && <span className="text-xs text-muted-foreground">{formatDate(a.due_date)}</span>}
                 </div>
               ))}
             </div>
           )}
         </CollapsibleSection>
+
+        {/* Follow-up Questions */}
+        {summary?.follow_up_questions?.length > 0 && (
+          <CollapsibleSection icon={HelpCircle} title="Suggested Follow-up Questions">
+            <div className="space-y-2">
+              {summary.follow_up_questions.map((q: string, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => sendQuestion(q)}
+                  className="block w-full rounded-lg border bg-background p-3 text-left text-sm text-card-foreground transition-colors hover:bg-muted"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
+        {/* Full Transcript */}
+        {visit.transcript && (
+          <CollapsibleSection icon={BookOpen} title="Full Transcript">
+            <p className="whitespace-pre-wrap text-sm text-muted-foreground">{visit.transcript}</p>
+          </CollapsibleSection>
+        )}
 
         {/* Q&A Chat */}
         <div className="rounded-xl border bg-card p-6 shadow-card">
@@ -295,10 +420,19 @@ const VisitDetailPage = () => {
                 {m.content}
               </div>
             ))}
+            {chatLoading && (
+              <div className="mr-8 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                <span className="inline-flex gap-1">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <Input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about your visit..." onKeyDown={(e) => e.key === "Enter" && sendQuestion()} />
-            <Button size="icon" onClick={() => sendQuestion()}><Send className="h-4 w-4" /></Button>
+            <Button size="icon" onClick={() => sendQuestion()} disabled={chatLoading}><Send className="h-4 w-4" /></Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">AfterVisit does not provide medical advice. Always consult your healthcare professional.</p>
         </div>
