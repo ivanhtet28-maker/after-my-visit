@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_VISITS, DEMO_ACTION_ITEMS, DEMO_CHAT_MESSAGES } from "@/data/demoData";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +48,7 @@ function CollapsibleSection({ icon: Icon, title, children, defaultOpen = false, 
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1 text-xs text-primary"
+                className="gap-1 text-xs text-primary hover:text-primary"
                 onClick={(e) => { e.stopPropagation(); onAskAI(); }}
               >
                 <Sparkles className="h-3 w-3" /> Ask AI
@@ -65,8 +67,6 @@ function CollapsibleSection({ icon: Icon, title, children, defaultOpen = false, 
 
 function createTermHighlighter(termsArray?: Array<{ term: string; explanation: string }>) {
   const termsMap: Record<string, string> = {};
-
-  // Built-in fallback terms
   const fallbackTerms: Record<string, string> = {
     hypertension: "High blood pressure — when the force of blood against your artery walls is consistently too high.",
     HbA1c: "A blood test showing your average blood sugar over the past 2–3 months.",
@@ -75,22 +75,17 @@ function createTermHighlighter(termsArray?: Array<{ term: string; explanation: s
     chronic: "A condition that lasts for a long time or keeps coming back.",
     inflammation: "Swelling, redness, and pain — your body's response to injury or infection.",
   };
-
-  // Add summary terms
   if (termsArray) {
     for (const t of termsArray) {
       termsMap[t.term.toLowerCase()] = t.explanation;
     }
   }
-
-  // Merge with fallbacks (summary terms take priority)
   const allTerms = { ...fallbackTerms, ...termsMap };
 
   return function highlightTerms(text: string) {
     if (!text || typeof text !== "string") return text;
     const keys = Object.keys(allTerms);
     if (keys.length === 0) return text;
-
     const regex = new RegExp(`\\b(${keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})\\b`, "gi");
     const parts = text.split(regex);
     return parts.map((part, i) => {
@@ -103,7 +98,7 @@ function createTermHighlighter(termsArray?: Array<{ term: string; explanation: s
                 {part}
               </span>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs">
+            <TooltipContent className="max-w-xs border-l-4 border-l-primary">
               <p className="text-sm">{allTerms[lower]}</p>
             </TooltipContent>
           </Tooltip>
@@ -117,6 +112,7 @@ function createTermHighlighter(termsArray?: Array<{ term: string; explanation: s
 const VisitDetailPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const navigate = useNavigate();
   const [visit, setVisit] = useState<any>(null);
   const [actions, setActions] = useState<any[]>([]);
@@ -126,6 +122,16 @@ const VisitDetailPage = () => {
   const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
+    if (isDemoMode && id?.startsWith("demo-visit-")) {
+      const demoVisit = DEMO_VISITS.find((v) => v.id === id);
+      const demoActions = DEMO_ACTION_ITEMS.filter((a) => a.visit_id === id);
+      const demoMessages = DEMO_CHAT_MESSAGES.filter((m) => m.visit_id === id);
+      setVisit(demoVisit || null);
+      setActions(demoActions);
+      setMessages(demoMessages);
+      setLoading(false);
+      return;
+    }
     if (!user || !id) return;
     const fetchVisit = async () => {
       const [vRes, aRes, mRes] = await Promise.all([
@@ -139,10 +145,15 @@ const VisitDetailPage = () => {
       setLoading(false);
     };
     fetchVisit();
-  }, [user, id]);
+  }, [user, id, isDemoMode]);
 
   const toggleAction = async (actionId: string, currentStatus: string) => {
     const newStatus = currentStatus === "pending" ? "complete" : "pending";
+    if (isDemoMode) {
+      setActions((prev) => prev.map((a) => a.id === actionId ? { ...a, status: newStatus } : a));
+      toast.success(newStatus === "complete" ? "Action completed!" : "Action reopened");
+      return;
+    }
     await supabase.from("action_items").update({
       status: newStatus,
       completed_at: newStatus === "complete" ? new Date().toISOString() : null,
@@ -153,25 +164,30 @@ const VisitDetailPage = () => {
 
   const sendQuestion = async (prefill?: string) => {
     const text = prefill || question;
-    if (!text.trim() || !user || !id) return;
+    if (!text.trim()) return;
 
-    // Optimistically add user message
     setMessages((prev) => [...prev, { role: "user", content: text, created_at: new Date().toISOString() }]);
     if (!prefill) setQuestion("");
     setChatLoading(true);
 
+    if (isDemoMode) {
+      await new Promise((r) => setTimeout(r, 1500));
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "This is a demo. In the full version, AfterVisit AI will answer based on your actual visit transcript and medical context.",
+        created_at: new Date().toISOString(),
+      }]);
+      setChatLoading(false);
+      return;
+    }
+
+    if (!user || !id) { setChatLoading(false); return; }
+
     try {
       const { data, error } = await supabase.functions.invoke("chat", {
-        body: {
-          visit_id: id,
-          user_id: user.id,
-          message: text,
-          context_type: "visit_summary",
-        },
+        body: { visit_id: id, user_id: user.id, message: text, context_type: "visit_summary" },
       });
-
       if (error) throw error;
-
       const reply = data?.response || "I'm sorry, I couldn't generate a response. Please try again.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply, created_at: new Date().toISOString() }]);
     } catch (err: any) {
@@ -179,8 +195,7 @@ const VisitDetailPage = () => {
       if (errorMsg.includes("rate") || errorMsg.includes("limit")) {
         toast.error("You've reached the free tier message limit. Upgrade to Plus for unlimited AI chat.");
       } else {
-        // Fallback to local response
-        const fallback = "Based on your visit summary, that's a great question. I'd recommend discussing this with your doctor at your next follow-up. In the meantime, make sure to follow the action items from your visit.";
+        const fallback = "Based on your visit summary, that's a great question. I'd recommend discussing this with your doctor at your next follow-up.";
         setMessages((prev) => [...prev, { role: "assistant", content: fallback, created_at: new Date().toISOString() }]);
       }
     }
@@ -214,8 +229,8 @@ const VisitDetailPage = () => {
           </Alert>
         )}
 
-        {/* Quick Summary — always visible */}
-        <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6 shadow-card">
+        {/* Quick Summary */}
+        <div className="rounded-xl border-l-4 border-l-primary border border-primary/20 bg-primary/5 p-6 shadow-card">
           <div className="mb-2 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-card-foreground">Quick Summary</h3>
@@ -229,32 +244,18 @@ const VisitDetailPage = () => {
           {summary?.quick_summary && (
             <p className="mt-3 text-sm text-muted-foreground">{highlightTerms(summary.quick_summary)}</p>
           )}
-          {/* Fallback for old format */}
-          {!summary?.quick_summary && summary?.diagnosis && (
-            <p className="mt-3 text-sm text-muted-foreground">{highlightTerms(summary.diagnosis)}</p>
-          )}
         </div>
 
         {/* Chief Complaint */}
         {summary?.chief_complaint && (
-          <CollapsibleSection
-            icon={Stethoscope}
-            title="Chief Complaint"
-            defaultOpen
-            onAskAI={() => sendQuestion(`Explain the chief complaint: "${summary.chief_complaint}"`)}
-          >
+          <CollapsibleSection icon={Stethoscope} title="Chief Complaint" defaultOpen onAskAI={() => sendQuestion(`Explain the chief complaint: "${summary.chief_complaint}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.chief_complaint)}</p>
           </CollapsibleSection>
         )}
 
         {/* Key Discussion Points */}
         {(summary?.key_discussion_points || summary?.keyPoints) && (
-          <CollapsibleSection
-            icon={FileText}
-            title="Key Discussion Points"
-            defaultOpen
-            onAskAI={() => sendQuestion("Explain the key discussion points from my visit")}
-          >
+          <CollapsibleSection icon={FileText} title="Key Discussion Points" defaultOpen onAskAI={() => sendQuestion("Explain the key discussion points from my visit")}>
             <ul className="space-y-2">
               {(summary.key_discussion_points || summary.keyPoints)?.map((p: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -267,22 +268,14 @@ const VisitDetailPage = () => {
 
         {/* Assessment */}
         {summary?.assessment && (
-          <CollapsibleSection
-            icon={Stethoscope}
-            title="Assessment"
-            onAskAI={() => sendQuestion(`Explain this assessment in simple terms: "${summary.assessment}"`)}
-          >
+          <CollapsibleSection icon={Stethoscope} title="Assessment" onAskAI={() => sendQuestion(`Explain this assessment in simple terms: "${summary.assessment}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.assessment)}</p>
           </CollapsibleSection>
         )}
 
         {/* Plan */}
         {summary?.plan && (
-          <CollapsibleSection
-            icon={Clipboard}
-            title="Plan"
-            onAskAI={() => sendQuestion("Explain the treatment plan from my visit")}
-          >
+          <CollapsibleSection icon={Clipboard} title="Plan" onAskAI={() => sendQuestion("Explain the treatment plan from my visit")}>
             {Array.isArray(summary.plan) ? (
               <ul className="space-y-2">
                 {summary.plan.map((item: string, i: number) => (
@@ -299,11 +292,7 @@ const VisitDetailPage = () => {
 
         {/* Doctor's Recommendations */}
         {summary?.doctors_recommendations && (
-          <CollapsibleSection
-            icon={ListOrdered}
-            title="Doctor's Recommendations"
-            onAskAI={() => sendQuestion("Explain the doctor's recommendations")}
-          >
+          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" onAskAI={() => sendQuestion("Explain the doctor's recommendations")}>
             <ol className="space-y-3">
               {summary.doctors_recommendations.map((r: any, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -319,11 +308,7 @@ const VisitDetailPage = () => {
 
         {/* Medications */}
         {summary?.medications && summary.medications.length > 0 && (
-          <CollapsibleSection
-            icon={Pill}
-            title="Medications Prescribed"
-            onAskAI={() => sendQuestion("Explain all the medications prescribed in this visit")}
-          >
+          <CollapsibleSection icon={Pill} title="Medications Prescribed" onAskAI={() => sendQuestion("Explain all the medications prescribed in this visit")}>
             <div className="space-y-3">
               {summary.medications.map((m: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
@@ -345,11 +330,7 @@ const VisitDetailPage = () => {
 
         {/* Referrals */}
         {summary?.referrals?.length > 0 && (
-          <CollapsibleSection
-            icon={UserPlus}
-            title="Referrals"
-            onAskAI={() => sendQuestion("Tell me about the referrals from my visit")}
-          >
+          <CollapsibleSection icon={UserPlus} title="Referrals" onAskAI={() => sendQuestion("Tell me about the referrals from my visit")}>
             <div className="space-y-3">
               {summary.referrals.map((r: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
@@ -387,12 +368,12 @@ const VisitDetailPage = () => {
         {/* Follow-up Questions */}
         {summary?.follow_up_questions?.length > 0 && (
           <CollapsibleSection icon={HelpCircle} title="Suggested Follow-up Questions">
-            <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
               {summary.follow_up_questions.map((q: string, i: number) => (
                 <button
                   key={i}
                   onClick={() => sendQuestion(q)}
-                  className="block w-full rounded-lg border bg-background p-3 text-left text-sm text-card-foreground transition-colors hover:bg-muted"
+                  className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-left text-sm text-card-foreground transition-colors hover:bg-primary/10"
                 >
                   {q}
                 </button>
@@ -404,7 +385,9 @@ const VisitDetailPage = () => {
         {/* Full Transcript */}
         {visit.transcript && (
           <CollapsibleSection icon={BookOpen} title="Full Transcript">
-            <p className="whitespace-pre-wrap text-sm text-muted-foreground">{visit.transcript}</p>
+            <div className="rounded-lg bg-muted/50 p-4">
+              <p className="whitespace-pre-wrap font-mono text-sm text-muted-foreground">{visit.transcript}</p>
+            </div>
           </CollapsibleSection>
         )}
 

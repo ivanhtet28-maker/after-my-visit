@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_MEDICATIONS } from "@/data/demoData";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,19 +14,27 @@ import { toast } from "sonner";
 
 const MedicationsPage = () => {
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const [meds, setMeds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", dosage: "", frequency: "", prescribing_doctor: "", is_pbs: false, plain_explanation: "" });
 
   useEffect(() => {
+    if (isDemoMode) {
+      setMeds(DEMO_MEDICATIONS);
+      setLoading(false);
+      return;
+    }
     if (!user) return;
     supabase.from("medications").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
       .then(({ data }) => { setMeds(data ?? []); setLoading(false); });
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const addMedication = async () => {
-    if (!form.name.trim() || !user) return;
+    if (!form.name.trim()) return;
+    if (isDemoMode) { toast.info("Adding medications is disabled in demo mode"); return; }
+    if (!user) return;
     const { data, error } = await supabase.from("medications").insert({
       user_id: user.id,
       ...form,
@@ -81,7 +91,11 @@ const MedicationsPage = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-card-foreground">{m.name}</p>
-                      {m.is_pbs && <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">PBS</span>}
+                      {m.is_pbs ? (
+                        <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">PBS ✓</span>
+                      ) : (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Non-PBS</span>
+                      )}
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${m.status === "active" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">{m.dosage} • {m.frequency}</p>

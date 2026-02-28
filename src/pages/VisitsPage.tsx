@@ -1,22 +1,41 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_VISITS } from "@/data/demoData";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 
+const visitTypeBadge = (type: string) => {
+  const map: Record<string, string> = {
+    gp: "bg-primary/10 text-primary",
+    specialist: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+    telehealth: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    allied_health: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+    emergency: "bg-destructive/10 text-destructive",
+  };
+  return map[type] || "bg-muted text-muted-foreground";
+};
+
 const VisitsPage = () => {
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const navigate = useNavigate();
   const [visits, setVisits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setVisits(DEMO_VISITS);
+      setLoading(false);
+      return;
+    }
     if (!user) return;
     supabase.from("visits").select("*").eq("user_id", user.id).order("visit_date", { ascending: false })
       .then(({ data }) => { setVisits(data ?? []); setLoading(false); });
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -40,11 +59,19 @@ const VisitsPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-card-foreground">{v.doctor_name || "Unknown Doctor"}</p>
-                    <p className="text-sm text-muted-foreground">{v.clinic_name} • {v.visit_type} • {formatDate(v.visit_date)}</p>
+                    <p className="text-sm text-muted-foreground">{v.clinic_name} • {formatDate(v.visit_date)}</p>
+                    {(v.summary as any)?.quick_summary && (
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{(v.summary as any).quick_summary}</p>
+                    )}
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    v.status === "complete" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
-                  }`}>{v.status}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${visitTypeBadge(v.visit_type)}`}>
+                      {v.visit_type}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      v.status === "complete" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                    }`}>{v.status}</span>
+                  </div>
                 </div>
               </div>
             ))}
