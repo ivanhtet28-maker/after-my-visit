@@ -265,11 +265,36 @@ export type Database = {
           },
         ]
       }
+      waitlist: {
+        Row: {
+          created_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          user_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          user_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          user_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_waitlist_count: { Args: never; Returns: number }
       is_owner_of_visit: { Args: { _visit_id: string }; Returns: boolean }
     }
     Enums: {
