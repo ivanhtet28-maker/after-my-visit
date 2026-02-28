@@ -8,7 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { seedDemoData, clearDemoData } from "@/lib/seedDemoData";
+import { Loader2 } from "lucide-react";
 
 const states = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"];
 const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56-65", "65+"];
@@ -18,6 +21,8 @@ const SettingsPage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [seedingDemo, setSeedingDemo] = useState(false);
+  const [clearingDemo, setClearingDemo] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -39,6 +44,30 @@ const SettingsPage = () => {
     setSaving(false);
     if (error) toast.error("Failed to save");
     else toast.success("Settings saved");
+  };
+
+  const handleSeedDemo = async () => {
+    if (!user) return;
+    setSeedingDemo(true);
+    try {
+      await seedDemoData(user.id);
+      toast.success("Demo data loaded! Visit your dashboard to see it.");
+    } catch (err: any) {
+      toast.error("Failed to seed demo data: " + err.message);
+    }
+    setSeedingDemo(false);
+  };
+
+  const handleClearDemo = async () => {
+    if (!user) return;
+    setClearingDemo(true);
+    try {
+      await clearDemoData(user.id);
+      toast.success("All visit data cleared.");
+    } catch (err: any) {
+      toast.error("Failed to clear data: " + err.message);
+    }
+    setClearingDemo(false);
   };
 
   if (loading) return <DashboardLayout><div className="flex justify-center p-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div></DashboardLayout>;
@@ -82,6 +111,27 @@ const SettingsPage = () => {
         <div className="rounded-xl border bg-card p-6 shadow-card">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">Subscription</h2>
           <p className="text-sm text-muted-foreground">Current plan: <span className="font-medium capitalize text-card-foreground">{profile?.subscription_tier ?? "free"}</span></p>
+        </div>
+
+        {/* Demo Mode */}
+        <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-6">
+          <div className="mb-2 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-card-foreground">Demo Mode</h2>
+            <Badge variant="secondary" className="text-xs">For demos</Badge>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Load realistic Australian sample data to showcase AfterVisit to clinics and investors. This will add 3 visits, action items, medications, and sample AI chat messages.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={handleSeedDemo} disabled={seedingDemo} className="gap-2">
+              {seedingDemo && <Loader2 className="h-4 w-4 animate-spin" />}
+              {seedingDemo ? "Loading demo data..." : "Load Demo Data"}
+            </Button>
+            <Button variant="outline" onClick={handleClearDemo} disabled={clearingDemo} className="gap-2">
+              {clearingDemo && <Loader2 className="h-4 w-4 animate-spin" />}
+              {clearingDemo ? "Clearing..." : "Clear All Data"}
+            </Button>
+          </div>
         </div>
 
         <Separator />
