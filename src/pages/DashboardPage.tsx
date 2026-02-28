@@ -1,13 +1,27 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_PROFILE, DEMO_VISITS, DEMO_ACTION_ITEMS } from "@/data/demoData";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, ClipboardCheck, Clock, Mic, FileText, ListChecks, HelpCircle } from "lucide-react";
+import { PlusCircle, Calendar, ClipboardCheck, Clock, Mic, FileText, ListChecks } from "lucide-react";
+
+const visitTypeBadge = (type: string) => {
+  const map: Record<string, string> = {
+    gp: "bg-primary/10 text-primary",
+    specialist: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+    telehealth: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    allied_health: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+    emergency: "bg-destructive/10 text-destructive",
+  };
+  return map[type] || "bg-muted text-muted-foreground";
+};
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [visits, setVisits] = useState<any[]>([]);
@@ -15,6 +29,18 @@ const DashboardPage = () => {
   const [stats, setStats] = useState({ totalVisits: 0, pendingActions: 0, upcomingFollowups: 0 });
 
   useEffect(() => {
+    if (isDemoMode) {
+      setProfile(DEMO_PROFILE);
+      setVisits(DEMO_VISITS);
+      const pendingActions = DEMO_ACTION_ITEMS.filter((a) => a.status === "pending");
+      setActions(pendingActions.slice(0, 3));
+      setStats({
+        totalVisits: DEMO_VISITS.length,
+        pendingActions: pendingActions.length,
+        upcomingFollowups: pendingActions.filter((a) => a.category === "follow_up").length,
+      });
+      return;
+    }
     if (!user) return;
     const fetchData = async () => {
       const [profileRes, visitsRes, actionsRes] = await Promise.all([
@@ -37,19 +63,20 @@ const DashboardPage = () => {
       });
     };
     fetchData();
-  }, [user]);
+  }, [user, isDemoMode]);
 
   const formatDate = (d: string) => {
     const date = new Date(d);
     return date.toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
 
+  const today = new Date().toISOString().split("T")[0];
   const hasVisits = visits.length > 0;
 
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Hero area with subtle gradient */}
+        {/* Hero area */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-hero-subtle p-8">
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -68,7 +95,6 @@ const DashboardPage = () => {
               </Link>
             </div>
           </div>
-          {/* Decorative circles */}
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/5" />
           <div className="absolute -bottom-8 -left-8 h-28 w-28 rounded-full bg-accent/5" />
         </div>
@@ -92,12 +118,11 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        {/* Recent Visits or Empty State */}
+        {/* Recent Visits */}
         <div>
           <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Visits</h2>
           {!hasVisits ? (
             <div className="rounded-2xl border bg-card p-10 text-center shadow-card">
-              {/* Friendly empty state */}
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
                 <Mic className="h-10 w-10 text-primary" />
               </div>
@@ -105,8 +130,6 @@ const DashboardPage = () => {
               <p className="mx-auto mb-6 max-w-md text-muted-foreground">
                 Record your first doctor's visit and let AfterVisit help you understand and track everything.
               </p>
-
-              {/* Step-by-step guide */}
               <div id="how-it-works-dash" className="mx-auto mb-8 grid max-w-lg gap-4 text-left sm:grid-cols-3">
                 {[
                   { step: "1", icon: Mic, title: "Record your visit", desc: "With your doctor's consent" },
@@ -114,16 +137,13 @@ const DashboardPage = () => {
                   { step: "3", icon: ListChecks, title: "Track actions", desc: "Never forget follow-ups" },
                 ].map((s) => (
                   <div key={s.step} className="flex flex-col items-center rounded-xl border bg-background p-4 text-center">
-                    <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                      {s.step}
-                    </div>
+                    <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{s.step}</div>
                     <s.icon className="mb-1 h-5 w-5 text-primary" />
                     <p className="text-sm font-medium text-card-foreground">{s.title}</p>
                     <p className="text-xs text-muted-foreground">{s.desc}</p>
                   </div>
                 ))}
               </div>
-
               <Button onClick={() => navigate("/visit/new")} size="lg" className="relative gap-2 shadow-lg">
                 <span className="absolute inset-0 rounded-lg bg-primary/20 animate-pulse-ring" />
                 <PlusCircle className="h-5 w-5" /> Record Your First Visit
@@ -139,15 +159,23 @@ const DashboardPage = () => {
                 >
                   <div>
                     <p className="font-medium text-card-foreground">{v.doctor_name || "Unknown Doctor"}</p>
-                    <p className="text-sm text-muted-foreground">{v.visit_type} • {formatDate(v.visit_date)}</p>
+                    <p className="text-sm text-muted-foreground">{v.clinic_name} • {formatDate(v.visit_date)}</p>
+                    {(v.summary as any)?.quick_summary && (
+                      <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{(v.summary as any).quick_summary}</p>
+                    )}
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    v.status === "complete" ? "bg-success/10 text-success" :
-                    v.status === "processing" ? "bg-warning/10 text-warning" :
-                    "bg-muted text-muted-foreground"
-                  }`}>
-                    {v.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${visitTypeBadge(v.visit_type)}`}>
+                      {v.visit_type}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      v.status === "complete" ? "bg-success/10 text-success" :
+                      v.status === "processing" ? "bg-warning/10 text-warning" :
+                      "bg-muted text-muted-foreground"
+                    }`}>
+                      {v.status}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -159,14 +187,22 @@ const DashboardPage = () => {
           <div>
             <h2 className="mb-4 text-lg font-semibold text-foreground">Upcoming Actions</h2>
             <div className="grid gap-3">
-              {actions.map((a) => (
-                <div key={a.id} className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-card">
-                  <p className="text-sm text-card-foreground">{a.description}</p>
-                  {a.due_date && (
-                    <span className="text-xs text-muted-foreground">{formatDate(a.due_date)}</span>
-                  )}
-                </div>
-              ))}
+              {actions.map((a) => {
+                const isOverdue = a.status === "pending" && a.due_date && a.due_date < today;
+                const isDueToday = a.due_date === today;
+                return (
+                  <div key={a.id} className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-card">
+                    <p className="text-sm text-card-foreground">{a.description}</p>
+                    {a.due_date && (
+                      <span className={`text-xs font-medium ${
+                        isOverdue ? "text-destructive" : isDueToday ? "text-warning" : "text-primary"
+                      }`}>
+                        {isOverdue ? "Overdue" : isDueToday ? "Due today" : formatDate(a.due_date)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

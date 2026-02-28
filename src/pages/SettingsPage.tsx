@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { seedDemoData, clearDemoData } from "@/lib/seedDemoData";
 import { Loader2 } from "lucide-react";
@@ -18,6 +20,7 @@ const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56-65", "65+"];
 
 const SettingsPage = () => {
   const { user } = useAuth();
+  const { isDemoMode, toggleDemoMode } = useDemoMode();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,6 +80,25 @@ const SettingsPage = () => {
       <div className="mx-auto max-w-2xl space-y-8">
         <h1 className="text-2xl font-bold text-foreground">Settings</h1>
 
+        {/* Demo Mode Toggle */}
+        <div className="rounded-xl border-2 border-accent/30 bg-accent/5 p-6">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-card-foreground">Demo Mode</h2>
+              <Badge variant="secondary" className="text-xs">For demos</Badge>
+            </div>
+            <Switch checked={isDemoMode} onCheckedChange={toggleDemoMode} />
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            {isDemoMode
+              ? "Demo mode is ON — all pages show hardcoded sample data. No database calls are made."
+              : "Enable demo mode to showcase AfterVisit with realistic Australian sample data. No database required."}
+          </p>
+          {isDemoMode && (
+            <p className="text-xs text-accent">Share this link to show anyone the demo: <span className="font-mono">?demo=true</span></p>
+          )}
+        </div>
+
         <div className="rounded-xl border bg-card p-6 shadow-card">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">Profile</h2>
           <div className="space-y-4">
@@ -113,19 +135,19 @@ const SettingsPage = () => {
           <p className="text-sm text-muted-foreground">Current plan: <span className="font-medium capitalize text-card-foreground">{profile?.subscription_tier ?? "free"}</span></p>
         </div>
 
-        {/* Demo Mode */}
+        {/* Database Seed */}
         <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-6">
           <div className="mb-2 flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-card-foreground">Demo Mode</h2>
-            <Badge variant="secondary" className="text-xs">For demos</Badge>
+            <h2 className="text-lg font-semibold text-card-foreground">Database Seed</h2>
+            <Badge variant="secondary" className="text-xs">Advanced</Badge>
           </div>
           <p className="mb-4 text-sm text-muted-foreground">
-            Load realistic Australian sample data to showcase AfterVisit to clinics and investors. This will add 3 visits, action items, medications, and sample AI chat messages.
+            Load sample data directly into the database (for testing real API calls). Use Demo Mode above for instant, no-database demos.
           </p>
           <div className="flex gap-3">
             <Button onClick={handleSeedDemo} disabled={seedingDemo} className="gap-2">
               {seedingDemo && <Loader2 className="h-4 w-4 animate-spin" />}
-              {seedingDemo ? "Loading demo data..." : "Load Demo Data"}
+              {seedingDemo ? "Loading..." : "Seed Database"}
             </Button>
             <Button variant="outline" onClick={handleClearDemo} disabled={clearingDemo} className="gap-2">
               {clearingDemo && <Loader2 className="h-4 w-4 animate-spin" />}
