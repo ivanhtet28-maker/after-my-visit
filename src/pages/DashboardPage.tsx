@@ -3,10 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_PATIENT, DEMO_VISITS_V2, DEMO_ACTION_ITEMS_V2 } from "@/data/demoPatient";
+import { DEMO_PATIENT, DEMO_VISITS_V2, DEMO_ACTION_ITEMS_V2, DEMO_MEDICATIONS_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, ClipboardCheck, Clock, Mic, FileText, ListChecks } from "lucide-react";
+import { PlusCircle, Calendar, ClipboardCheck, Clock, Pill, Mic, FileText, ListChecks } from "lucide-react";
 
 const visitTypeBadge = (type: string) => {
   const map: Record<string, string> = {
@@ -26,18 +26,19 @@ const DashboardPage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [visits, setVisits] = useState<any[]>([]);
   const [actions, setActions] = useState<any[]>([]);
-  const [stats, setStats] = useState({ totalVisits: 0, pendingActions: 0, upcomingFollowups: 0 });
+  const [stats, setStats] = useState({ totalVisits: 0, pendingActions: 0, upcomingFollowups: 0, activeMeds: 0 });
 
   useEffect(() => {
     if (isDemoMode) {
       setProfile(DEMO_PATIENT);
-      setVisits(DEMO_VISITS_V2);
+      setVisits(DEMO_VISITS_V2.slice(0, 3));
       const pendingActions = DEMO_ACTION_ITEMS_V2.filter((a) => a.status === "pending");
       setActions(pendingActions.slice(0, 3));
       setStats({
         totalVisits: DEMO_VISITS_V2.length,
         pendingActions: pendingActions.length,
         upcomingFollowups: pendingActions.filter((a) => a.category === "follow_up").length,
+        activeMeds: DEMO_MEDICATIONS_V2.filter((m) => m.status === "active").length,
       });
       return;
     }
@@ -60,6 +61,7 @@ const DashboardPage = () => {
         totalVisits: allVisits.count ?? 0,
         pendingActions: pendingActions.count ?? 0,
         upcomingFollowups: actionsRes.data?.filter((a: any) => a.category === "follow_up").length ?? 0,
+        activeMeds: 0,
       });
     };
     fetchData();
@@ -100,11 +102,12 @@ const DashboardPage = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Total Visits", value: stats.totalVisits, icon: Calendar },
             { label: "Pending Actions", value: stats.pendingActions, icon: ClipboardCheck },
             { label: "Upcoming Follow-ups", value: stats.upcomingFollowups, icon: Clock },
+            { label: "Active Medications", value: stats.activeMeds, icon: Pill },
           ].map((s) => (
             <div key={s.label} className="flex items-center gap-4 rounded-xl border bg-card p-6 shadow-card">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -164,17 +167,15 @@ const DashboardPage = () => {
                       <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{(v.summary as any).quick_summary}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${visitTypeBadge(v.visit_type)}`}>
-                      {v.visit_type}
+                      {(v.visit_type || "").replace("_", " ")}
                     </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      v.status === "complete" ? "bg-success/10 text-success" :
-                      v.status === "processing" ? "bg-warning/10 text-warning" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
-                      {v.status}
-                    </span>
+                    {v.bulk_billed ? (
+                      <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Bulk Billed</span>
+                    ) : v.out_of_pocket ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">${v.out_of_pocket} gap</span>
+                    ) : null}
                   </div>
                 </div>
               ))}

@@ -1,4 +1,4 @@
-import { Home, PlusCircle, Folder, CheckSquare, Pill, Settings } from "lucide-react";
+import { Home, PlusCircle, Folder, CheckSquare, Pill, FlaskConical, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -18,6 +18,7 @@ const items = [
   { title: "My Visits", url: "/visits", icon: Folder },
   { title: "Action Items", url: "/actions", icon: CheckSquare },
   { title: "Medications", url: "/medications", icon: Pill },
+  { title: "Lab Results", url: "/lab-results", icon: FlaskConical },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

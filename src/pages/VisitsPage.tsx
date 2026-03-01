@@ -64,13 +64,19 @@ const VisitsPage = () => {
                       <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{(v.summary as any).quick_summary}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${visitTypeBadge(v.visit_type)}`}>
-                      {v.visit_type}
+                      {(v.visit_type || "").replace("_", " ")}
                     </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      v.status === "complete" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
-                    }`}>{v.status}</span>
+                    {v.bulk_billed ? (
+                      <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Bulk Billed</span>
+                    ) : v.out_of_pocket ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">${v.out_of_pocket} gap</span>
+                    ) : (
+                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        v.status === "complete" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                      }`}>{v.status}</span>
+                    )}
                   </div>
                 </div>
               </div>
