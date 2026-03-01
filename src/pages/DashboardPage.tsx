@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_PROFILE, DEMO_VISITS, DEMO_ACTION_ITEMS } from "@/data/demoData";
+import { DEMO_PATIENT, DEMO_VISITS_V2, DEMO_ACTION_ITEMS_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Calendar, ClipboardCheck, Clock, Mic, FileText, ListChecks } from "lucide-react";
@@ -30,12 +30,12 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (isDemoMode) {
-      setProfile(DEMO_PROFILE);
-      setVisits(DEMO_VISITS);
-      const pendingActions = DEMO_ACTION_ITEMS.filter((a) => a.status === "pending");
+      setProfile(DEMO_PATIENT);
+      setVisits(DEMO_VISITS_V2);
+      const pendingActions = DEMO_ACTION_ITEMS_V2.filter((a) => a.status === "pending");
       setActions(pendingActions.slice(0, 3));
       setStats({
-        totalVisits: DEMO_VISITS.length,
+        totalVisits: DEMO_VISITS_V2.length,
         pendingActions: pendingActions.length,
         upcomingFollowups: pendingActions.filter((a) => a.category === "follow_up").length,
       });

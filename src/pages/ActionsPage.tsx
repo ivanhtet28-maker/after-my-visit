@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_ACTION_ITEMS, DEMO_VISITS } from "@/data/demoData";
+import { DEMO_ACTION_ITEMS_V2, DEMO_VISITS_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,8 @@ const ActionsPage = () => {
   useEffect(() => {
     if (isDemoMode) {
       // Enrich with visit doctor names
-      const enriched = DEMO_ACTION_ITEMS.map((a) => {
-        const visit = DEMO_VISITS.find((v) => v.id === a.visit_id);
+      const enriched = DEMO_ACTION_ITEMS_V2.map((a) => {
+        const visit = DEMO_VISITS_V2.find((v) => v.id === a.visit_id);
         return { ...a, visits: visit ? { doctor_name: visit.doctor_name, visit_date: visit.visit_date } : null };
       });
       setActions(enriched);
