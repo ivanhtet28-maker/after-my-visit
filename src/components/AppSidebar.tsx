@@ -1,6 +1,7 @@
-import { Home, PlusCircle, Folder, CheckSquare, Pill, FlaskConical, Settings } from "lucide-react";
+import { Home, PlusCircle, Folder, CheckSquare, Pill, FlaskConical, Settings, Phone } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { EmergencyContactsModal } from "@/components/EmergencyContactsModal";
 import {
   Sidebar,
   SidebarContent,
@@ -54,6 +55,15 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {/* Emergency Contacts */}
+        <div className={`mt-auto border-t p-3 ${collapsed ? "flex justify-center" : ""}`}>
+          <EmergencyContactsModal>
+            <button className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 ${collapsed ? "justify-center px-2" : "w-full"}`}>
+              <Phone className="h-4 w-4" />
+              {!collapsed && <span>Emergency</span>}
+            </button>
+          </EmergencyContactsModal>
+        </div>
       </SidebarContent>
     </Sidebar>
   );

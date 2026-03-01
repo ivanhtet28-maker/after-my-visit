@@ -23,6 +23,7 @@ import {
 import {
   Stethoscope, FileText, Pill, ClipboardCheck, MessageSquare, Send, ArrowLeft, ChevronDown, Sparkles, AlertCircle, ListOrdered, Clipboard, AlertTriangle, BookOpen, HelpCircle, UserPlus,
 } from "lucide-react";
+import TrustedResourcesCard from "@/components/TrustedResourcesCard";
 import { toast } from "sonner";
 
 interface SectionProps {
@@ -388,6 +389,14 @@ const VisitDetailPage = () => {
             </div>
           </CollapsibleSection>
         )}
+
+        {/* AI Disclaimer */}
+        <div className="rounded-lg bg-muted/50 px-4 py-2.5">
+          <p className="text-xs text-muted-foreground">AI-generated summary from your visit recording. May contain errors. Always verify with your healthcare provider.</p>
+        </div>
+
+        {/* Trusted Resources */}
+        {summary && <TrustedResourcesCard summary={summary} />}
 
         {/* Full Transcript */}
         {visit.transcript && (

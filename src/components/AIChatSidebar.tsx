@@ -183,7 +183,12 @@ function ChatBody({ messages, isTyping, scrollRef, suggestedQuestions, onSuggest
       )}
       <div className="space-y-3">
         {messages.map((m, i) => (
-          <div key={i} className={`rounded-lg p-3 text-sm ${m.role === "user" ? "ml-4 bg-primary/10 text-card-foreground" : "mr-4 bg-muted text-muted-foreground"}`}>{m.content}</div>
+          <div key={i} className={`rounded-lg p-3 text-sm ${m.role === "user" ? "ml-4 bg-primary/10 text-card-foreground" : "mr-4 bg-muted text-muted-foreground"}`}>
+            {m.content}
+            {m.role === "assistant" && (
+              <p className="mt-2 text-[10px] italic text-muted-foreground/70">Based on your visit recording. Verify with your doctor. healthdirect 1800 022 222</p>
+            )}
+          </div>
         ))}
         {isTyping && (
           <div className="mr-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
