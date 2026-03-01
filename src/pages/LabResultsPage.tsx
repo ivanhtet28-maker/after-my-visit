@@ -102,6 +102,11 @@ const LabResultsPage = () => {
           </div>
         </div>
 
+        {/* Disclaimer */}
+        <div className="rounded-lg bg-muted/50 px-4 py-2.5">
+          <p className="text-xs text-muted-foreground">Lab results are for reference only. Your doctor will interpret these results in the context of your overall health.</p>
+        </div>
+
         {results.length === 0 ? (
           <div className="rounded-xl border bg-card p-8 text-center shadow-card">
             <FlaskConical className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />

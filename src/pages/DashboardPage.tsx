@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DEMO_PATIENT, DEMO_VISITS_V2, DEMO_ACTION_ITEMS_V2, DEMO_MEDICATIONS_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, ClipboardCheck, Clock, Pill, Mic, FileText, ListChecks } from "lucide-react";
+import { PlusCircle, Calendar, ClipboardCheck, Clock, Pill, Mic, FileText, ListChecks, Hospital, Phone, Search, ClipboardList, ExternalLink } from "lucide-react";
 
 const visitTypeBadge = (type: string) => {
   const map: Record<string, string> = {
@@ -207,6 +207,34 @@ const DashboardPage = () => {
             </div>
           </div>
         )}
+        {/* Helpful Links */}
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Helpful Links</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Hospital, title: "Find a GP", desc: "Locate health services near you", url: "https://www.healthdirect.gov.au/australian-health-services", external: true },
+              { icon: Search, title: "Check your medication", desc: "Side effects & interactions", url: "https://www.nps.org.au/medicine-finder", external: true },
+              { icon: Phone, title: "24/7 Health Advice", desc: "healthdirect — free call", url: "tel:1800022222", external: false },
+              { icon: ClipboardList, title: "My Health Record", desc: "Claims, scripts & records", url: "https://www.myhealthrecord.gov.au", external: true },
+            ].map((link) => (
+              <a
+                key={link.title}
+                href={link.url}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                className="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-card transition-all hover:border-primary/40 hover:shadow-card-hover"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <link.icon className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-card-foreground">{link.title}</p>
+                  <p className="text-xs text-muted-foreground">{link.desc}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

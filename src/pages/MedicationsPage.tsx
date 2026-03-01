@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Pill } from "lucide-react";
+import { Plus, Pill, ExternalLink } from "lucide-react";
+import { AU_RESOURCES } from "@/data/australianHealthResources";
 import { toast } from "sonner";
 
 const MedicationsPage = () => {
@@ -76,6 +77,11 @@ const MedicationsPage = () => {
           </Dialog>
         </div>
 
+        {/* Disclaimer */}
+        <div className="rounded-lg bg-muted/50 px-4 py-2.5">
+          <p className="text-xs text-muted-foreground">Medication information is based on your visit recordings. Always confirm dosages and instructions with your pharmacist.</p>
+        </div>
+
         {loading ? (
           <div className="space-y-3">{[1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />)}</div>
         ) : meds.length === 0 ? (
@@ -105,6 +111,18 @@ const MedicationsPage = () => {
                 {m.plain_explanation && (
                   <p className="mt-2 text-sm text-primary">{m.plain_explanation}</p>
                 )}
+                {/* Resource links */}
+                <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3">
+                  <a href={AU_RESOURCES.pbs.search} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                    <ExternalLink className="h-3 w-3" /> PBS listing
+                  </a>
+                  <a href={AU_RESOURCES.nps.finder} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                    <ExternalLink className="h-3 w-3" /> Side effects &amp; info
+                  </a>
+                  {m.is_pbs && (
+                    <span className="text-xs text-muted-foreground">PBS co-payment: ~$31.60 (general) / $7.70 (concession)</span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
