@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_CHAT_MESSAGES } from "@/data/demoData";
+import { DEMO_CHAT_MESSAGES_V2 } from "@/data/demoPatient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,8 +56,8 @@ const AIChatSidebar = () => {
 
   // Pre-populate demo chat messages
   useEffect(() => {
-    if (isDemoMode && visitId === "demo-visit-1" && !demoLoaded) {
-      const demoMsgs = DEMO_CHAT_MESSAGES.filter((m) => m.visit_id === "demo-visit-1").map((m) => ({
+    if (isDemoMode && visitId?.startsWith("demo-v2-") && !demoLoaded) {
+      const demoMsgs = DEMO_CHAT_MESSAGES_V2.filter((m) => m.visit_id === visitId).map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,
       }));

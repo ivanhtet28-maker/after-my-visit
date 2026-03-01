@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_VISITS } from "@/data/demoData";
+import { DEMO_VISITS_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
@@ -28,7 +28,7 @@ const VisitsPage = () => {
 
   useEffect(() => {
     if (isDemoMode) {
-      setVisits(DEMO_VISITS);
+      setVisits(DEMO_VISITS_V2);
       setLoading(false);
       return;
     }

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
-import { DEMO_VISITS, DEMO_ACTION_ITEMS, DEMO_CHAT_MESSAGES } from "@/data/demoData";
+import { DEMO_VISITS_V2, DEMO_ACTION_ITEMS_V2, DEMO_CHAT_MESSAGES_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,10 +122,10 @@ const VisitDetailPage = () => {
   const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
-    if (isDemoMode && id?.startsWith("demo-visit-")) {
-      const demoVisit = DEMO_VISITS.find((v) => v.id === id);
-      const demoActions = DEMO_ACTION_ITEMS.filter((a) => a.visit_id === id);
-      const demoMessages = DEMO_CHAT_MESSAGES.filter((m) => m.visit_id === id);
+    if (isDemoMode && id?.startsWith("demo-v2-")) {
+      const demoVisit = DEMO_VISITS_V2.find((v) => v.id === id);
+      const demoActions = DEMO_ACTION_ITEMS_V2.filter((a) => a.visit_id === id);
+      const demoMessages = DEMO_CHAT_MESSAGES_V2.filter((m) => m.visit_id === id);
       setVisit(demoVisit || null);
       setActions(demoActions);
       setMessages(demoMessages);
