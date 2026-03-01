@@ -239,7 +239,14 @@ const VisitDetailPage = () => {
             <p><span className="text-muted-foreground">Doctor:</span> {visit.doctor_name}</p>
             <p><span className="text-muted-foreground">Clinic:</span> {visit.clinic_name}</p>
             <p><span className="text-muted-foreground">Date:</span> {formatDate(visit.visit_date)}</p>
-            <p><span className="text-muted-foreground">Type:</span> <span className="capitalize">{visit.visit_type}</span></p>
+            <p className="flex items-center gap-2">
+              <span className="text-muted-foreground">Type:</span> <span className="capitalize">{(visit.visit_type || "").replace("_", " ")}</span>
+              {visit.bulk_billed ? (
+                <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">Bulk Billed</span>
+              ) : visit.out_of_pocket ? (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">${visit.out_of_pocket} gap</span>
+              ) : null}
+            </p>
           </div>
           {summary?.quick_summary && (
             <p className="mt-3 text-sm text-muted-foreground">{highlightTerms(summary.quick_summary)}</p>

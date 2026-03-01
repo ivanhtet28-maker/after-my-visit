@@ -1,8 +1,12 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useDemoMode } from "@/hooks/useDemoMode";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const { isDemoMode } = useDemoMode();
+
+  if (isDemoMode) return <>{children}</>;
 
   if (loading) {
     return (
