@@ -131,7 +131,7 @@ const DashboardPage = () => {
               </div>
               <h3 className="mb-2 text-lg font-semibold text-card-foreground">Ready to get started?</h3>
               <p className="mx-auto mb-6 max-w-md text-muted-foreground">
-                Record your first doctor's visit and let AfterVisit help you understand and track everything.
+                Record your first doctor's visit and let Clarity Health help you understand and track everything.
               </p>
               <div id="how-it-works-dash" className="mx-auto mb-8 grid max-w-lg gap-4 text-left sm:grid-cols-3">
                 {[

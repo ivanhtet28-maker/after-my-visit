@@ -32,7 +32,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className={`flex h-16 items-center border-b px-4 ${collapsed ? "justify-center" : ""}`}>
-          <span className="text-lg font-bold text-primary">{collapsed ? "AV" : "AfterVisit"}</span>
+          <span className="text-lg font-bold text-primary">{collapsed ? "CH" : "Clarity Health"}</span>
         </div>
         <SidebarGroup>
           <SidebarGroupContent>

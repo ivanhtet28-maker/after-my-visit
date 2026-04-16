@@ -5,17 +5,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import heroImage from "@/assets/hero-illustration.jpg";
 
 const testimonials = [
-  { name: "Sarah", suburb: "Point Cook", text: "AfterVisit changed how I manage my health. I finally understand what my specialist is telling me.", rating: 5 },
+  { name: "Sarah", suburb: "Point Cook", text: "Clarity Health changed how I manage my health. I finally understand what my specialist is telling me.", rating: 5 },
   { name: "James", suburb: "Bondi", text: "As a carer for my elderly mum, this is a lifesaver. I can track her appointments and medications in one place.", rating: 5 },
   { name: "Priya", suburb: "Parramatta", text: "I used to forget half of what my GP said. Now I have everything in plain English with follow-up actions.", rating: 5 },
 ];
 
 const faqs = [
-  { q: "Is it legal to record my doctor?", a: "In most Australian states, you can record a private conversation you're part of with consent. We recommend always informing your doctor and obtaining their verbal consent before recording. AfterVisit includes a consent confirmation step." },
+  { q: "Is it legal to record my doctor?", a: "In most Australian states, you can record a private conversation you're part of with consent. We recommend always informing your doctor and obtaining their verbal consent before recording. Clarity Health includes a consent confirmation step." },
   { q: "Is my data safe?", a: "Absolutely. Your data is encrypted at rest and in transit, stored on Australian servers, and only accessible by you. We comply with the Australian Privacy Act and follow healthcare data best practices." },
   { q: "Does my doctor need to agree?", a: "Yes, we strongly recommend obtaining your doctor's verbal consent before recording. Most doctors are supportive when they understand it helps patients remember their advice." },
-  { q: "Can I use it for telehealth?", a: "Yes! AfterVisit works with telehealth consultations. Simply start recording during your video or phone appointment (with consent) and get the same structured summary." },
-  { q: "What if English isn't my first language?", a: "AfterVisit's plain-English explanations are designed to be simple and clear. We're working on multilingual support — if you'd like to see your language, let us know!" },
+  { q: "Can I use it for telehealth?", a: "Yes! Clarity Health works with telehealth consultations. Simply start recording during your video or phone appointment (with consent) and get the same structured summary." },
+  { q: "What if English isn't my first language?", a: "Clarity Health's plain-English explanations are designed to be simple and clear. We're working on multilingual support — if you'd like to see your language, let us know!" },
 ];
 
 const LandingPage = () => {
@@ -26,7 +26,7 @@ const LandingPage = () => {
       {/* Nav */}
       <nav className="fixed top-0 z-50 w-full border-b bg-card/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <span className="text-xl font-bold text-primary">AfterVisit</span>
+          <span className="text-xl font-bold text-primary">Clarity Health</span>
           <div className="flex items-center gap-3">
             <Button variant="ghost" onClick={() => navigate("/login")}>Log in</Button>
             <Button onClick={() => navigate("/signup")}>Get Started</Button>
@@ -69,7 +69,7 @@ const LandingPage = () => {
           <p className="mb-12 text-center text-muted-foreground">Three simple steps to take control of your health</p>
           <div className="grid gap-8 md:grid-cols-3">
             {[
-              { icon: Mic, title: "Record Your Visit", desc: "With your doctor's consent, record your consultation. AfterVisit transcribes and structures everything discussed." },
+              { icon: Mic, title: "Record Your Visit", desc: "With your doctor's consent, record your consultation. Clarity Health transcribes and structures everything discussed." },
               { icon: Lightbulb, title: "Understand Everything", desc: "Complex medical terms explained in plain English. Your diagnosis, medications, and next steps — all crystal clear." },
               { icon: ClipboardCheck, title: "Never Miss a Follow-Up", desc: "Track your action items, medication reminders, upcoming referrals, and prepare questions for your next visit." },
             ].map((f) => (
@@ -91,7 +91,7 @@ const LandingPage = () => {
           <h2 className="mb-12 text-center text-3xl font-bold text-foreground">How It Works</h2>
           <div className="grid gap-8 md:grid-cols-3">
             {[
-              { step: "1", title: "Record your appointment", desc: "With your doctor's consent, tap record and let AfterVisit capture everything." },
+              { step: "1", title: "Record your appointment", desc: "With your doctor's consent, tap record and let Clarity Health capture everything." },
               { step: "2", title: "AI creates a structured summary", desc: "Within minutes, get a clear breakdown of what was discussed, diagnosed, and prescribed." },
               { step: "3", title: "Track actions & ask questions", desc: "Stay on top of follow-ups, medications, and ask questions about your visit anytime." },
             ].map((s) => (
@@ -216,7 +216,7 @@ const LandingPage = () => {
       <section className="py-20">
         <div className="container mx-auto max-w-2xl px-4">
           <h2 className="mb-4 text-center text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
-          <p className="mb-10 text-center text-muted-foreground">Everything you need to know about AfterVisit</p>
+          <p className="mb-10 text-center text-muted-foreground">Everything you need to know about Clarity Health</p>
           <Accordion type="single" collapsible className="space-y-2">
             {faqs.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} className="rounded-xl border bg-card px-6 shadow-card">
@@ -236,7 +236,7 @@ const LandingPage = () => {
       <footer className="border-t bg-card py-12">
         <div className="container mx-auto px-4">
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-            <span className="text-lg font-bold text-primary">AfterVisit</span>
+            <span className="text-lg font-bold text-primary">Clarity Health</span>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
               {["About", "Privacy Policy", "Terms", "Contact", "Blog"].map((l) => (
                 <a key={l} href="#" className="hover:text-foreground transition-colors">{l}</a>
@@ -245,7 +245,7 @@ const LandingPage = () => {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-6">
             <p className="text-xs text-muted-foreground">
-              AfterVisit is not a medical device. It does not provide medical advice or diagnoses. Always consult your healthcare professional.
+              Clarity Health is not a medical device. It does not provide medical advice or diagnoses. Always consult your healthcare professional.
             </p>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>🇦🇺</span>

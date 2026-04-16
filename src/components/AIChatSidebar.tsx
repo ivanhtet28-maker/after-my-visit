@@ -20,7 +20,7 @@ const contextualText: Record<string, string> = {
   "/visits": "Ask about your past visits",
   "/actions": "Ask about your action items and follow-ups",
   "/medications": "Ask about your medications",
-  "/settings": "Ask me anything about AfterVisit",
+  "/settings": "Ask me anything about Clarity Health",
 };
 
 const suggestedQuestions = [
@@ -89,7 +89,7 @@ const AIChatSidebar = () => {
       await new Promise((r) => setTimeout(r, 1500));
       const reply: Message = {
         role: "assistant",
-        content: "This is a demo. In the full version, AfterVisit AI will answer based on your actual visit transcript and medical context.",
+        content: "This is a demo. In the full version, Clarity Health AI will answer based on your actual visit transcript and medical context.",
       };
       setMessages((prev) => [...prev, reply]);
       setIsTyping(false);
@@ -131,7 +131,7 @@ const AIChatSidebar = () => {
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-card-foreground">AfterVisit AI</span>
+                <span className="font-semibold text-card-foreground">Clarity Health AI</span>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="h-5 w-5" /></Button>
             </div>
@@ -156,7 +156,7 @@ const AIChatSidebar = () => {
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-card-foreground">AfterVisit AI</span>
+            <span className="font-semibold text-card-foreground">Clarity Health AI</span>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setOpen(false)}><X className="h-4 w-4" /></Button>
         </div>
@@ -211,7 +211,7 @@ function ChatInput({ input, setInput, onSend }: { input: string; setInput: (v: s
         <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask anything..." onKeyDown={(e) => e.key === "Enter" && onSend()} />
         <Button size="icon" onClick={onSend}><Send className="h-4 w-4" /></Button>
       </div>
-      <p className="mt-2 text-center text-[10px] text-muted-foreground">AfterVisit does not provide medical advice.</p>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">Clarity Health does not provide medical advice.</p>
     </div>
   );
 }
