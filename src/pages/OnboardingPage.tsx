@@ -47,7 +47,7 @@ const OnboardingPage = () => {
     if (error) {
       toast.error("Failed to save profile");
     } else {
-      toast.success("Welcome to AfterVisit!");
+      toast.success("Welcome to Clarity Health!");
       navigate("/dashboard");
     }
   };
@@ -56,7 +56,7 @@ const OnboardingPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-lg">
         <div className="mb-8 text-center">
-          <span className="text-2xl font-bold text-primary">AfterVisit</span>
+          <span className="text-2xl font-bold text-primary">Clarity Health</span>
           <div className="mt-4 flex justify-center gap-2">
             {[1, 2, 3].map((s) => (
               <div key={s} className={`h-2 w-12 rounded-full transition-colors ${s <= step ? "bg-primary" : "bg-border"}`} />
@@ -121,7 +121,7 @@ const OnboardingPage = () => {
 
           {step === 3 && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-card-foreground">How AfterVisit works</h2>
+              <h2 className="text-xl font-semibold text-card-foreground">How Clarity Health works</h2>
               <div className="grid gap-4">
                 {[
                   { icon: Mic, title: "Record", desc: "Capture your consultation with consent" },
@@ -142,7 +142,7 @@ const OnboardingPage = () => {
               <div className="flex items-start gap-3">
                 <Checkbox id="disclaimer" checked={disclaimer} onCheckedChange={(c) => setDisclaimer(!!c)} />
                 <Label htmlFor="disclaimer" className="text-sm text-muted-foreground leading-5">
-                  I understand AfterVisit does not provide medical advice. Always consult your healthcare professional.
+                  I understand Clarity Health does not provide medical advice. Always consult your healthcare professional.
                 </Label>
               </div>
               <div className="flex gap-3">

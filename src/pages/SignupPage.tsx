@@ -34,7 +34,7 @@ const SignupPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <Link to="/" className="text-2xl font-bold text-primary">AfterVisit</Link>
+          <Link to="/" className="text-2xl font-bold text-primary">Clarity Health</Link>
           <p className="mt-2 text-muted-foreground">Your AI Health Companion</p>
         </div>
         <div className="rounded-xl border bg-card p-8 shadow-card">

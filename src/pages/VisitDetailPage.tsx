@@ -175,7 +175,7 @@ const VisitDetailPage = () => {
       await new Promise((r) => setTimeout(r, 1500));
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: "This is a demo. In the full version, AfterVisit AI will answer based on your actual visit transcript and medical context.",
+        content: "This is a demo. In the full version, Clarity Health AI will answer based on your actual visit transcript and medical context.",
         created_at: new Date().toISOString(),
       }]);
       setChatLoading(false);
@@ -433,7 +433,7 @@ const VisitDetailPage = () => {
             <Input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about your visit..." onKeyDown={(e) => e.key === "Enter" && sendQuestion()} />
             <Button size="icon" onClick={() => sendQuestion()} disabled={chatLoading}><Send className="h-4 w-4" /></Button>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">AfterVisit does not provide medical advice. Always consult your healthcare professional.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Clarity Health does not provide medical advice. Always consult your healthcare professional.</p>
         </div>
       </div>
     </DashboardLayout>
