@@ -53,15 +53,17 @@ const DashboardPage = () => {
       if (visitsRes.data) setVisits(visitsRes.data);
       if (actionsRes.data) setActions(actionsRes.data);
 
-      const [allVisits, pendingActions] = await Promise.all([
+      const [allVisits, pendingActions, followUps, activeMeds] = await Promise.all([
         supabase.from("visits").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("action_items").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "pending"),
+        supabase.from("action_items").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "pending").eq("category", "follow_up"),
+        supabase.from("medications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "active"),
       ]);
       setStats({
         totalVisits: allVisits.count ?? 0,
         pendingActions: pendingActions.count ?? 0,
-        upcomingFollowups: actionsRes.data?.filter((a: any) => a.category === "follow_up").length ?? 0,
-        activeMeds: 0,
+        upcomingFollowups: followUps.count ?? 0,
+        activeMeds: activeMeds.count ?? 0,
       });
     };
     fetchData();
