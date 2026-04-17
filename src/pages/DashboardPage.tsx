@@ -95,6 +95,11 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {usingDemoFallback && (
+          <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
+            <span className="font-semibold">Showing sample data</span> — record your first visit to see your real dashboard.
+          </div>
+        )}
         {/* Hero area */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-hero-subtle p-8">
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
