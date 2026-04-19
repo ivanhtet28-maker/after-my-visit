@@ -321,7 +321,7 @@ const VisitDetailPage = () => {
 
         {/* Key Discussion Points */}
         {(summary?.key_discussion_points || summary?.keyPoints) && (
-          <CollapsibleSection icon={FileText} title="Key Discussion Points" defaultOpen onAskAI={() => sendQuestion("Explain the key discussion points from my visit")}>
+          <CollapsibleSection icon={FileText} title="Key Discussion Points" defaultOpen onAskAI={() => askAI("Key Discussion Points", "Explain the key discussion points from my visit")}>
             <ul className="space-y-2">
               {(summary.key_discussion_points || summary.keyPoints)?.map((p: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
