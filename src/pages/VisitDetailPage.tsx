@@ -396,7 +396,7 @@ const VisitDetailPage = () => {
 
         {/* Referrals */}
         {summary?.referrals?.length > 0 && (
-          <CollapsibleSection icon={UserPlus} title="Referrals" onAskAI={() => sendQuestion("Tell me about the referrals from my visit")}>
+          <CollapsibleSection icon={UserPlus} title="Referrals" onAskAI={() => askAI("Referrals", "Tell me about the referrals from my visit")}>
             <div className="space-y-3">
               {summary.referrals.map((r: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
