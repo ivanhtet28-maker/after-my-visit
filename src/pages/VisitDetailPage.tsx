@@ -494,6 +494,56 @@ const VisitDetailPage = () => {
           <p className="mt-2 text-xs text-muted-foreground">Clarity Health does not provide medical advice. Always consult your healthcare professional.</p>
         </div>
       </div>
+
+      {/* Ask AI Modal */}
+      <Dialog open={askModalOpen} onOpenChange={setAskModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Ask AI — {askModalTitle}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+            {askModalMessages.map((m, i) => (
+              <div
+                key={i}
+                className={`rounded-lg p-3 text-sm ${
+                  m.role === "user"
+                    ? "ml-6 bg-primary/10 text-card-foreground"
+                    : "mr-6 bg-muted text-muted-foreground"
+                }`}
+              >
+                {m.content}
+              </div>
+            ))}
+            {askModalLoading && (
+              <div className="mr-6 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                <span className="inline-flex gap-1">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2 border-t pt-3">
+            <Input
+              value={askModalInput}
+              onChange={(e) => setAskModalInput(e.target.value)}
+              placeholder="Ask a follow-up..."
+              onKeyDown={(e) => e.key === "Enter" && sendInModal()}
+              disabled={askModalLoading}
+            />
+            <Button size="icon" onClick={sendInModal} disabled={askModalLoading}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-center text-[10px] text-muted-foreground">
+            Clarity Health does not provide medical advice. Always verify with your doctor.
+          </p>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
