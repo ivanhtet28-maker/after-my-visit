@@ -314,7 +314,7 @@ const VisitDetailPage = () => {
 
         {/* Chief Complaint */}
         {summary?.chief_complaint && (
-          <CollapsibleSection icon={Stethoscope} title="Chief Complaint" defaultOpen onAskAI={() => sendQuestion(`Explain the chief complaint: "${summary.chief_complaint}"`)}>
+          <CollapsibleSection icon={Stethoscope} title="Chief Complaint" defaultOpen onAskAI={() => askAI("Chief Complaint", `Explain the chief complaint: "${summary.chief_complaint}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.chief_complaint)}</p>
           </CollapsibleSection>
         )}
