@@ -374,7 +374,7 @@ const VisitDetailPage = () => {
 
         {/* Medications */}
         {summary?.medications && summary.medications.length > 0 && (
-          <CollapsibleSection icon={Pill} title="Medications Prescribed" onAskAI={() => sendQuestion("Explain all the medications prescribed in this visit")}>
+          <CollapsibleSection icon={Pill} title="Medications Prescribed" onAskAI={() => askAI("Medications Prescribed", "Explain all the medications prescribed in this visit")}>
             <div className="space-y-3">
               {summary.medications.map((m: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
