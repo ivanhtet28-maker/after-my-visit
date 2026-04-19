@@ -334,7 +334,7 @@ const VisitDetailPage = () => {
 
         {/* Assessment */}
         {summary?.assessment && (
-          <CollapsibleSection icon={Stethoscope} title="Assessment" onAskAI={() => sendQuestion(`Explain this assessment in simple terms: "${summary.assessment}"`)}>
+          <CollapsibleSection icon={Stethoscope} title="Assessment" onAskAI={() => askAI("Assessment", `Explain this assessment in simple terms: "${summary.assessment}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.assessment)}</p>
           </CollapsibleSection>
         )}
