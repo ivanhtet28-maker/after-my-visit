@@ -217,6 +217,50 @@ const VisitDetailPage = () => {
     setChatLoading(false);
   };
 
+  const fetchAIReply = async (text: string): Promise<string> => {
+    if (isDemoMode) {
+      await new Promise((r) => setTimeout(r, 1200));
+      return "This is a demo response. In the full version, Clarity Health AI will answer based on your actual visit transcript — explaining medical terms simply, referencing relevant Medicare/PBS info where useful, and reminding you to verify important details with your doctor.";
+    }
+    if (!user || !id) return "Please sign in to ask questions.";
+    try {
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: { visit_id: id, user_id: user.id, message: text, context_type: "visit_summary" },
+      });
+      if (error) throw error;
+      return data?.response || "I'm sorry, I couldn't generate a response. Please try again.";
+    } catch (err: any) {
+      const errorMsg = err?.message || "";
+      if (errorMsg.includes("rate") || errorMsg.includes("limit")) {
+        toast.error("You've reached the free tier message limit. Upgrade to Plus for unlimited AI chat.");
+        return "You've reached the free tier limit. Upgrade to Plus for unlimited AI chat.";
+      }
+      return "Based on your visit summary, that's a great question. I'd recommend discussing this with your doctor at your next follow-up.";
+    }
+  };
+
+  const askAI = async (sectionTitle: string, prompt: string) => {
+    setAskModalTitle(sectionTitle);
+    setAskModalMessages([{ role: "user", content: prompt }]);
+    setAskModalInput("");
+    setAskModalOpen(true);
+    setAskModalLoading(true);
+    const reply = await fetchAIReply(prompt);
+    setAskModalMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    setAskModalLoading(false);
+  };
+
+  const sendInModal = async () => {
+    const text = askModalInput.trim();
+    if (!text || askModalLoading) return;
+    setAskModalMessages((prev) => [...prev, { role: "user", content: text }]);
+    setAskModalInput("");
+    setAskModalLoading(true);
+    const reply = await fetchAIReply(text);
+    setAskModalMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    setAskModalLoading(false);
+  };
+
   const formatDate = (d: string) => new Date(d).toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   if (loading) return <DashboardLayout><div className="flex justify-center p-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div></DashboardLayout>;
