@@ -128,6 +128,14 @@ const VisitDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
 
+  // Ask AI modal state
+  const [askModalOpen, setAskModalOpen] = useState(false);
+  const [askModalTitle, setAskModalTitle] = useState("");
+  const [askModalMessages, setAskModalMessages] = useState<Array<{ role: string; content: string }>>([]);
+  const [askModalLoading, setAskModalLoading] = useState(false);
+  const [askModalInput, setAskModalInput] = useState("");
+
+
   useEffect(() => {
     if (isDemoMode && id?.startsWith("demo-v2-")) {
       const demoVisit = DEMO_VISITS_V2.find((v) => v.id === id);
