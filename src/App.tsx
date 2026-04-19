@@ -18,6 +18,12 @@ import ActionsPage from "./pages/ActionsPage";
 import MedicationsPage from "./pages/MedicationsPage";
 import SettingsPage from "./pages/SettingsPage";
 import LabResultsPage from "./pages/LabResultsPage";
+import GpTodayPage from "./pages/gp/GpTodayPage";
+import GpInboxPage from "./pages/gp/GpInboxPage";
+import GpPatientsPage from "./pages/gp/GpPatientsPage";
+import GpPatientDetailPage from "./pages/gp/GpPatientDetailPage";
+import GpAnalyticsPage from "./pages/gp/GpAnalyticsPage";
+import GpSettingsPage from "./pages/gp/GpSettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +49,13 @@ const App = () => (
             <Route path="/medications" element={<ProtectedRoute><MedicationsPage /></ProtectedRoute>} />
             <Route path="/lab-results" element={<ProtectedRoute><LabResultsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            {/* GP Portal — demo only, no auth */}
+            <Route path="/gp" element={<GpTodayPage />} />
+            <Route path="/gp/inbox" element={<GpInboxPage />} />
+            <Route path="/gp/patients" element={<GpPatientsPage />} />
+            <Route path="/gp/patients/:id" element={<GpPatientDetailPage />} />
+            <Route path="/gp/analytics" element={<GpAnalyticsPage />} />
+            <Route path="/gp/settings" element={<GpSettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
