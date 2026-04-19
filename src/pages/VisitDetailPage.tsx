@@ -358,7 +358,7 @@ const VisitDetailPage = () => {
 
         {/* Doctor's Recommendations */}
         {summary?.doctors_recommendations && (
-          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" onAskAI={() => sendQuestion("Explain the doctor's recommendations")}>
+          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" onAskAI={() => askAI("Doctor's Recommendations", "Explain the doctor's recommendations")}>
             <ol className="space-y-3">
               {summary.doctors_recommendations.map((r: any, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
