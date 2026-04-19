@@ -341,7 +341,7 @@ const VisitDetailPage = () => {
 
         {/* Plan */}
         {summary?.plan && (
-          <CollapsibleSection icon={Clipboard} title="Plan" onAskAI={() => sendQuestion("Explain the treatment plan from my visit")}>
+          <CollapsibleSection icon={Clipboard} title="Plan" onAskAI={() => askAI("Plan", "Explain the treatment plan from my visit")}>
             {Array.isArray(summary.plan) ? (
               <ul className="space-y-2">
                 {summary.plan.map((item: string, i: number) => (
