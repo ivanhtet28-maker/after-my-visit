@@ -19,6 +19,10 @@ import MedicationsPage from "./pages/MedicationsPage";
 import SettingsPage from "./pages/SettingsPage";
 import LabResultsPage from "./pages/LabResultsPage";
 import NotFound from "./pages/NotFound";
+import DoctorDashboardPage from "./pages/doctor/DoctorDashboardPage";
+import DoctorPatientsPage from "./pages/doctor/DoctorPatientsPage";
+import DoctorPatientDetailPage from "./pages/doctor/DoctorPatientDetailPage";
+import DoctorVisitDetailPage from "./pages/doctor/DoctorVisitDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +47,11 @@ const App = () => (
             <Route path="/medications" element={<ProtectedRoute><MedicationsPage /></ProtectedRoute>} />
             <Route path="/lab-results" element={<ProtectedRoute><LabResultsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            {/* Doctor Portal */}
+            <Route path="/doctor/dashboard" element={<ProtectedRoute><DoctorDashboardPage /></ProtectedRoute>} />
+            <Route path="/doctor/patients" element={<ProtectedRoute><DoctorPatientsPage /></ProtectedRoute>} />
+            <Route path="/doctor/patient/:patientId" element={<ProtectedRoute><DoctorPatientDetailPage /></ProtectedRoute>} />
+            <Route path="/doctor/patient/:patientId/visit/:visitId" element={<ProtectedRoute><DoctorVisitDetailPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

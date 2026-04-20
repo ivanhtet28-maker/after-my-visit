@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Firecrawl research cache
+.firecrawl/
+
+# Vite timestamp files
+vite.config.ts.timestamp-*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

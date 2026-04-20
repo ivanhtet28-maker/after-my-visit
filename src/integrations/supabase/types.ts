@@ -177,6 +177,7 @@ export type Database = {
           id: string
           onboarding_complete: boolean | null
           ongoing_conditions: string | null
+          role: string
           state: string | null
           subscription_tier: string | null
           updated_at: string | null
@@ -190,6 +191,7 @@ export type Database = {
           id: string
           onboarding_complete?: boolean | null
           ongoing_conditions?: string | null
+          role?: string
           state?: string | null
           subscription_tier?: string | null
           updated_at?: string | null
@@ -203,6 +205,7 @@ export type Database = {
           id?: string
           onboarding_complete?: boolean | null
           ongoing_conditions?: string | null
+          role?: string
           state?: string | null
           subscription_tier?: string | null
           updated_at?: string | null
