@@ -11,6 +11,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -122,6 +128,14 @@ const VisitDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
 
+  // Ask AI modal state
+  const [askModalOpen, setAskModalOpen] = useState(false);
+  const [askModalTitle, setAskModalTitle] = useState("");
+  const [askModalMessages, setAskModalMessages] = useState<Array<{ role: string; content: string }>>([]);
+  const [askModalLoading, setAskModalLoading] = useState(false);
+  const [askModalInput, setAskModalInput] = useState("");
+
+
   useEffect(() => {
     if (isDemoMode && id?.startsWith("demo-v2-")) {
       const demoVisit = DEMO_VISITS_V2.find((v) => v.id === id);
@@ -203,6 +217,50 @@ const VisitDetailPage = () => {
     setChatLoading(false);
   };
 
+  const fetchAIReply = async (text: string): Promise<string> => {
+    if (isDemoMode) {
+      await new Promise((r) => setTimeout(r, 1200));
+      return "This is a demo response. In the full version, Clarity Health AI will answer based on your actual visit transcript — explaining medical terms simply, referencing relevant Medicare/PBS info where useful, and reminding you to verify important details with your doctor.";
+    }
+    if (!user || !id) return "Please sign in to ask questions.";
+    try {
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: { visit_id: id, user_id: user.id, message: text, context_type: "visit_summary" },
+      });
+      if (error) throw error;
+      return data?.response || "I'm sorry, I couldn't generate a response. Please try again.";
+    } catch (err: any) {
+      const errorMsg = err?.message || "";
+      if (errorMsg.includes("rate") || errorMsg.includes("limit")) {
+        toast.error("You've reached the free tier message limit. Upgrade to Plus for unlimited AI chat.");
+        return "You've reached the free tier limit. Upgrade to Plus for unlimited AI chat.";
+      }
+      return "Based on your visit summary, that's a great question. I'd recommend discussing this with your doctor at your next follow-up.";
+    }
+  };
+
+  const askAI = async (sectionTitle: string, prompt: string) => {
+    setAskModalTitle(sectionTitle);
+    setAskModalMessages([{ role: "user", content: prompt }]);
+    setAskModalInput("");
+    setAskModalOpen(true);
+    setAskModalLoading(true);
+    const reply = await fetchAIReply(prompt);
+    setAskModalMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    setAskModalLoading(false);
+  };
+
+  const sendInModal = async () => {
+    const text = askModalInput.trim();
+    if (!text || askModalLoading) return;
+    setAskModalMessages((prev) => [...prev, { role: "user", content: text }]);
+    setAskModalInput("");
+    setAskModalLoading(true);
+    const reply = await fetchAIReply(text);
+    setAskModalMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    setAskModalLoading(false);
+  };
+
   const formatDate = (d: string) => new Date(d).toLocaleDateString("en-AU", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   if (loading) return <DashboardLayout><div className="flex justify-center p-12"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div></DashboardLayout>;
@@ -256,14 +314,14 @@ const VisitDetailPage = () => {
 
         {/* Chief Complaint */}
         {summary?.chief_complaint && (
-          <CollapsibleSection icon={Stethoscope} title="Chief Complaint" defaultOpen onAskAI={() => sendQuestion(`Explain the chief complaint: "${summary.chief_complaint}"`)}>
+          <CollapsibleSection icon={Stethoscope} title="Chief Complaint" defaultOpen onAskAI={() => askAI("Chief Complaint", `Explain the chief complaint: "${summary.chief_complaint}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.chief_complaint)}</p>
           </CollapsibleSection>
         )}
 
         {/* Key Discussion Points */}
         {(summary?.key_discussion_points || summary?.keyPoints) && (
-          <CollapsibleSection icon={FileText} title="Key Discussion Points" defaultOpen onAskAI={() => sendQuestion("Explain the key discussion points from my visit")}>
+          <CollapsibleSection icon={FileText} title="Key Discussion Points" defaultOpen onAskAI={() => askAI("Key Discussion Points", "Explain the key discussion points from my visit")}>
             <ul className="space-y-2">
               {(summary.key_discussion_points || summary.keyPoints)?.map((p: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -276,14 +334,14 @@ const VisitDetailPage = () => {
 
         {/* Assessment */}
         {summary?.assessment && (
-          <CollapsibleSection icon={Stethoscope} title="Assessment" onAskAI={() => sendQuestion(`Explain this assessment in simple terms: "${summary.assessment}"`)}>
+          <CollapsibleSection icon={Stethoscope} title="Assessment" onAskAI={() => askAI("Assessment", `Explain this assessment in simple terms: "${summary.assessment}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.assessment)}</p>
           </CollapsibleSection>
         )}
 
         {/* Plan */}
         {summary?.plan && (
-          <CollapsibleSection icon={Clipboard} title="Plan" onAskAI={() => sendQuestion("Explain the treatment plan from my visit")}>
+          <CollapsibleSection icon={Clipboard} title="Plan" onAskAI={() => askAI("Plan", "Explain the treatment plan from my visit")}>
             {Array.isArray(summary.plan) ? (
               <ul className="space-y-2">
                 {summary.plan.map((item: string, i: number) => (
@@ -300,7 +358,7 @@ const VisitDetailPage = () => {
 
         {/* Doctor's Recommendations */}
         {summary?.doctors_recommendations && (
-          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" onAskAI={() => sendQuestion("Explain the doctor's recommendations")}>
+          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" onAskAI={() => askAI("Doctor's Recommendations", "Explain the doctor's recommendations")}>
             <ol className="space-y-3">
               {summary.doctors_recommendations.map((r: any, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -316,7 +374,7 @@ const VisitDetailPage = () => {
 
         {/* Medications */}
         {summary?.medications && summary.medications.length > 0 && (
-          <CollapsibleSection icon={Pill} title="Medications Prescribed" onAskAI={() => sendQuestion("Explain all the medications prescribed in this visit")}>
+          <CollapsibleSection icon={Pill} title="Medications Prescribed" onAskAI={() => askAI("Medications Prescribed", "Explain all the medications prescribed in this visit")}>
             <div className="space-y-3">
               {summary.medications.map((m: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
@@ -338,7 +396,7 @@ const VisitDetailPage = () => {
 
         {/* Referrals */}
         {summary?.referrals?.length > 0 && (
-          <CollapsibleSection icon={UserPlus} title="Referrals" onAskAI={() => sendQuestion("Tell me about the referrals from my visit")}>
+          <CollapsibleSection icon={UserPlus} title="Referrals" onAskAI={() => askAI("Referrals", "Tell me about the referrals from my visit")}>
             <div className="space-y-3">
               {summary.referrals.map((r: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
@@ -436,6 +494,56 @@ const VisitDetailPage = () => {
           <p className="mt-2 text-xs text-muted-foreground">Clarity Health does not provide medical advice. Always consult your healthcare professional.</p>
         </div>
       </div>
+
+      {/* Ask AI Modal */}
+      <Dialog open={askModalOpen} onOpenChange={setAskModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Ask AI — {askModalTitle}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+            {askModalMessages.map((m, i) => (
+              <div
+                key={i}
+                className={`rounded-lg p-3 text-sm ${
+                  m.role === "user"
+                    ? "ml-6 bg-primary/10 text-card-foreground"
+                    : "mr-6 bg-muted text-muted-foreground"
+                }`}
+              >
+                {m.content}
+              </div>
+            ))}
+            {askModalLoading && (
+              <div className="mr-6 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                <span className="inline-flex gap-1">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2 border-t pt-3">
+            <Input
+              value={askModalInput}
+              onChange={(e) => setAskModalInput(e.target.value)}
+              placeholder="Ask a follow-up..."
+              onKeyDown={(e) => e.key === "Enter" && sendInModal()}
+              disabled={askModalLoading}
+            />
+            <Button size="icon" onClick={sendInModal} disabled={askModalLoading}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-center text-[10px] text-muted-foreground">
+            Clarity Health does not provide medical advice. Always verify with your doctor.
+          </p>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

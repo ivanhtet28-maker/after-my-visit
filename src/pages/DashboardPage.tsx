@@ -27,19 +27,25 @@ const DashboardPage = () => {
   const [visits, setVisits] = useState<any[]>([]);
   const [actions, setActions] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalVisits: 0, pendingActions: 0, upcomingFollowups: 0, activeMeds: 0 });
+  const [usingDemoFallback, setUsingDemoFallback] = useState(false);
+
+  const loadDemo = () => {
+    setProfile(DEMO_PATIENT);
+    setVisits(DEMO_VISITS_V2.slice(0, 3));
+    const pendingActions = DEMO_ACTION_ITEMS_V2.filter((a) => a.status === "pending");
+    setActions(pendingActions.slice(0, 3));
+    setStats({
+      totalVisits: DEMO_VISITS_V2.length,
+      pendingActions: pendingActions.length,
+      upcomingFollowups: pendingActions.filter((a) => a.category === "follow_up").length,
+      activeMeds: DEMO_MEDICATIONS_V2.filter((m) => m.status === "active").length,
+    });
+  };
 
   useEffect(() => {
     if (isDemoMode) {
-      setProfile(DEMO_PATIENT);
-      setVisits(DEMO_VISITS_V2.slice(0, 3));
-      const pendingActions = DEMO_ACTION_ITEMS_V2.filter((a) => a.status === "pending");
-      setActions(pendingActions.slice(0, 3));
-      setStats({
-        totalVisits: DEMO_VISITS_V2.length,
-        pendingActions: pendingActions.length,
-        upcomingFollowups: pendingActions.filter((a) => a.category === "follow_up").length,
-        activeMeds: DEMO_MEDICATIONS_V2.filter((m) => m.status === "active").length,
-      });
+      setUsingDemoFallback(false);
+      loadDemo();
       return;
     }
     if (!user) return;
@@ -50,18 +56,29 @@ const DashboardPage = () => {
         supabase.from("action_items").select("*").eq("user_id", user.id).eq("status", "pending").order("due_date", { ascending: true }).limit(3),
       ]);
       if (profileRes.data) setProfile(profileRes.data);
-      if (visitsRes.data) setVisits(visitsRes.data);
-      if (actionsRes.data) setActions(actionsRes.data);
 
-      const [allVisits, pendingActions] = await Promise.all([
+      const [allVisits, pendingActions, followUps, activeMeds] = await Promise.all([
         supabase.from("visits").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("action_items").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "pending"),
+        supabase.from("action_items").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "pending").eq("category", "follow_up"),
+        supabase.from("medications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "active"),
       ]);
+
+      const totalVisits = allVisits.count ?? 0;
+      // Auto-load demo data when account is completely empty so the dashboard isn't blank
+      if (totalVisits === 0 && (pendingActions.count ?? 0) === 0 && (activeMeds.count ?? 0) === 0) {
+        setUsingDemoFallback(true);
+        loadDemo();
+        return;
+      }
+
+      if (visitsRes.data) setVisits(visitsRes.data);
+      if (actionsRes.data) setActions(actionsRes.data);
       setStats({
-        totalVisits: allVisits.count ?? 0,
+        totalVisits,
         pendingActions: pendingActions.count ?? 0,
-        upcomingFollowups: actionsRes.data?.filter((a: any) => a.category === "follow_up").length ?? 0,
-        activeMeds: 0,
+        upcomingFollowups: followUps.count ?? 0,
+        activeMeds: activeMeds.count ?? 0,
       });
     };
     fetchData();
@@ -78,6 +95,11 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {usingDemoFallback && (
+          <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
+            <span className="font-semibold">Showing sample data</span> — record your first visit to see your real dashboard.
+          </div>
+        )}
         {/* Hero area */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-hero-subtle p-8">
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
