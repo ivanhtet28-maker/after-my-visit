@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { DemoModeProvider } from "@/hooks/useDemoMode";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import GpProtectedRoute from "@/components/GpProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -24,6 +25,11 @@ import GpPatientsPage from "./pages/gp/GpPatientsPage";
 import GpPatientDetailPage from "./pages/gp/GpPatientDetailPage";
 import GpAnalyticsPage from "./pages/gp/GpAnalyticsPage";
 import GpSettingsPage from "./pages/gp/GpSettingsPage";
+import GpLoginPage from "./pages/gp/GpLoginPage";
+import GpDashboardPage from "./pages/gp/GpDashboardPage";
+import GpClinicPatientsPage from "./pages/gp/GpClinicPatientsPage";
+import GpConsentSettingsPage from "./pages/gp/GpConsentSettingsPage";
+import GpQrCodePage from "./pages/gp/GpQrCodePage";
 import NotFound from "./pages/NotFound";
 import DoctorDashboardPage from "./pages/doctor/DoctorDashboardPage";
 import DoctorPatientsPage from "./pages/doctor/DoctorPatientsPage";
@@ -53,7 +59,8 @@ const App = () => (
             <Route path="/medications" element={<ProtectedRoute><MedicationsPage /></ProtectedRoute>} />
             <Route path="/lab-results" element={<ProtectedRoute><LabResultsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-            {/* GP Portal — demo only, no auth */}
+
+            {/* GP Portal — origin (Lovable) demo routes, no auth */}
             <Route path="/gp" element={<GpTodayPage />} />
             <Route path="/gp/inbox" element={<GpInboxPage />} />
             <Route path="/gp/patients" element={<GpPatientsPage />} />
@@ -65,6 +72,14 @@ const App = () => (
             <Route path="/doctor/patients" element={<ProtectedRoute><DoctorPatientsPage /></ProtectedRoute>} />
             <Route path="/doctor/patient/:patientId" element={<ProtectedRoute><DoctorPatientDetailPage /></ProtectedRoute>} />
             <Route path="/doctor/patient/:patientId/visit/:visitId" element={<ProtectedRoute><DoctorVisitDetailPage /></ProtectedRoute>} />
+
+            {/* GP Portal — spec routes (CLAUDE.md), gated by admin allowlist */}
+            <Route path="/gp/login" element={<GpLoginPage />} />
+            <Route path="/gp/dashboard" element={<GpProtectedRoute><GpDashboardPage /></GpProtectedRoute>} />
+            <Route path="/gp/clinic-patients" element={<GpProtectedRoute><GpClinicPatientsPage /></GpProtectedRoute>} />
+            <Route path="/gp/consent-settings" element={<GpProtectedRoute><GpConsentSettingsPage /></GpProtectedRoute>} />
+            <Route path="/gp/qr-code" element={<GpProtectedRoute><GpQrCodePage /></GpProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

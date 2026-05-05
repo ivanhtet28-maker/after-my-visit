@@ -6,5 +6,8 @@ verify_jwt = false
 [functions.summarise]
 verify_jwt = false
 
+[functions.summarise-text]
+verify_jwt = false
+
 [functions.chat]
 verify_jwt = false

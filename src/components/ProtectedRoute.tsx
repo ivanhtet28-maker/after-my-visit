@@ -1,12 +1,14 @@
-import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  const { isDemoMode } = useDemoMode();
+  const { isDemoMode, enableDemoMode } = useDemoMode();
 
-  if (isDemoMode) return <>{children}</>;
+  useEffect(() => {
+    if (!loading && !user && !isDemoMode) enableDemoMode();
+  }, [loading, user, isDemoMode, enableDemoMode]);
 
   if (loading) {
     return (
@@ -15,8 +17,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-
-  if (!user) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 };

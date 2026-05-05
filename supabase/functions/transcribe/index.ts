@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const audioBuffer = await fileData.arrayBuffer();
 
     // Send to Deepgram
-    const dgResponse = await fetch("https://api.deepgram.com/v1/listen?language=en-AU&smart_format=true&punctuate=true&diarize=true&model=nova-2-medical", {
+    const dgResponse = await fetch("https://api.deepgram.com/v1/listen?language=en-AU&smart_format=true&punctuate=true&diarize=true&model=nova-3-medical", {
       method: "POST",
       headers: {
         Authorization: `Token ${deepgramKey}`,
