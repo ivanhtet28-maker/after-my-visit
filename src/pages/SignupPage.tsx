@@ -52,9 +52,7 @@ const SignupPage = () => {
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            By signing up you agree to our{" "}
-            <a href="#" className="text-primary hover:underline">Terms</a> and{" "}
-            <a href="#" className="text-primary hover:underline">Privacy Policy</a>
+            By signing up you agree to our Terms and Privacy Policy.
           </p>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             Already have an account?{" "}

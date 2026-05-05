@@ -30,6 +30,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/gp")} className="hidden sm:inline-flex text-muted-foreground hover:text-primary">For GPs</Button>
             <Button variant="ghost" onClick={() => navigate("/login")}>Log in</Button>
+            <Button variant="outline" onClick={() => navigate("/dashboard?demo=true")}>View Demo</Button>
             <Button onClick={() => navigate("/signup")}>Get Started</Button>
           </div>
         </div>
@@ -48,13 +49,14 @@ const LandingPage = () => {
                 Record your appointment. Get a plain-English summary. Ask follow-up questions anytime. Built for Australian patients.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button size="lg" onClick={() => navigate("/signup")} className="gap-2">
-                  Get Early Access — Free <ArrowRight className="h-4 w-4" />
+                <Button size="lg" onClick={() => navigate("/dashboard?demo=true")} className="gap-2">
+                  Try Live Demo <ArrowRight className="h-4 w-4" />
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}>
-                  See How It Works
+                <Button size="lg" variant="outline" onClick={() => navigate("/signup")}>
+                  Get Early Access — Free
                 </Button>
               </div>
+              <p className="mt-3 text-sm text-muted-foreground">No sign-up needed to explore the demo.</p>
             </div>
             <div className="flex items-center justify-center">
               <img src={heroImage} alt="AfterVisit health companion illustration" className="w-full max-w-lg rounded-2xl shadow-card-hover" />
@@ -64,7 +66,7 @@ const LandingPage = () => {
       </section>
 
       {/* Features */}
-      <section className="py-20">
+      <section id="features" className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-4 text-center text-3xl font-bold text-foreground">Everything You Need After Your Visit</h2>
           <p className="mb-12 text-center text-muted-foreground">Three simple steps to take control of your health</p>
@@ -162,20 +164,21 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* As Seen On placeholder */}
+      {/* Trust row */}
       <section className="py-12">
         <div className="container mx-auto px-4 text-center">
-          <p className="mb-6 text-sm font-medium uppercase tracking-wider text-muted-foreground">As featured in</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 opacity-40">
-            {["TechCrunch", "Health IT", "StartupDaily", "Medical Republic"].map((name) => (
-              <span key={name} className="text-lg font-bold text-muted-foreground">{name}</span>
-            ))}
+          <p className="mb-6 text-sm font-medium uppercase tracking-wider text-muted-foreground">Built for Australian patients</p>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-muted-foreground">
+            <span className="rounded-full border bg-card px-4 py-2">🇦🇺 Data stored in Australia</span>
+            <span className="rounded-full border bg-card px-4 py-2">🔒 Privacy Act 1988 compliant</span>
+            <span className="rounded-full border bg-card px-4 py-2">💊 PBS &amp; Medicare aware</span>
+            <span className="rounded-full border bg-card px-4 py-2">👨‍⚕️ Clinic consent built-in</span>
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section className="bg-gradient-hero-subtle py-20">
+      <section id="pricing" className="bg-gradient-hero-subtle py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-4 text-center text-3xl font-bold text-foreground">Simple, Transparent Pricing</h2>
           <p className="mb-12 text-center text-muted-foreground">Start free, upgrade when you need more</p>
@@ -214,7 +217,7 @@ const LandingPage = () => {
       </section>
 
       {/* FAQ */}
-      <section className="py-20">
+      <section id="faq" className="py-20">
         <div className="container mx-auto max-w-2xl px-4">
           <h2 className="mb-4 text-center text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
           <p className="mb-10 text-center text-muted-foreground">Everything you need to know about Clarity Health</p>
@@ -239,9 +242,10 @@ const LandingPage = () => {
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <span className="text-lg font-bold text-primary">Clarity Health</span>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-              {["About", "Privacy Policy", "Terms", "Contact", "Blog"].map((l) => (
-                <a key={l} href="#" className="hover:text-foreground transition-colors">{l}</a>
-              ))}
+              <a href="#features" className="hover:text-foreground transition-colors">How it works</a>
+              <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+              <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+              <a href="mailto:hello@aftervisit.com.au" className="hover:text-foreground transition-colors">Contact</a>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-6">

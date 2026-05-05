@@ -22,14 +22,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   Stethoscope, FileText, Pill, ClipboardCheck, MessageSquare, Send, ArrowLeft, ChevronDown, Sparkles, AlertCircle, ListOrdered, Clipboard, AlertTriangle, BookOpen, HelpCircle, UserPlus,
 } from "lucide-react";
 import TrustedResourcesCard from "@/components/TrustedResourcesCard";
+import { createTermHighlighter } from "@/lib/highlightTerms";
 import { toast } from "sonner";
 
 interface SectionProps {
@@ -70,50 +66,6 @@ function CollapsibleSection({ icon: Icon, title, children, defaultOpen = false, 
       </div>
     </Collapsible>
   );
-}
-
-function createTermHighlighter(termsArray?: Array<{ term: string; explanation: string }>) {
-  const termsMap: Record<string, string> = {};
-  const fallbackTerms: Record<string, string> = {
-    hypertension: "High blood pressure — when the force of blood against your artery walls is consistently too high.",
-    HbA1c: "A blood test showing your average blood sugar over the past 2–3 months.",
-    eGFR: "Estimated Glomerular Filtration Rate — a blood test that measures how well your kidneys are filtering waste.",
-    pathology: "Laboratory testing of blood, tissue, or other body samples to diagnose disease.",
-    chronic: "A condition that lasts for a long time or keeps coming back.",
-    inflammation: "Swelling, redness, and pain — your body's response to injury or infection.",
-  };
-  if (termsArray) {
-    for (const t of termsArray) {
-      termsMap[t.term.toLowerCase()] = t.explanation;
-    }
-  }
-  const allTerms = { ...fallbackTerms, ...termsMap };
-
-  return function highlightTerms(text: string) {
-    if (!text || typeof text !== "string") return text;
-    const keys = Object.keys(allTerms);
-    if (keys.length === 0) return text;
-    const regex = new RegExp(`\\b(${keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|")})\\b`, "gi");
-    const parts = text.split(regex);
-    return parts.map((part, i) => {
-      const lower = part.toLowerCase();
-      if (allTerms[lower]) {
-        return (
-          <Tooltip key={i}>
-            <TooltipTrigger asChild>
-              <span className="cursor-help border-b border-dashed border-primary text-primary font-medium">
-                {part}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs border-l-4 border-l-primary">
-              <p className="text-sm">{allTerms[lower]}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      }
-      return part;
-    });
-  };
 }
 
 const VisitDetailPage = () => {
@@ -276,19 +228,20 @@ const VisitDetailPage = () => {
           <ArrowLeft className="h-4 w-4" /> Back to visits
         </Button>
 
-        {/* Urgency Flags */}
+        {/* 1. Urgency Flags — red alert banner, only if present */}
         {summary?.urgency_flags?.length > 0 && (
-          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
+          <Alert variant="destructive" className="border-2 border-destructive bg-destructive/10">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertDescription className="ml-2">
+              <p className="mb-1 text-sm font-bold text-destructive">Urgent Items</p>
               {summary.urgency_flags.map((flag: string, i: number) => (
-                <p key={i} className="text-sm font-medium">{flag}</p>
+                <p key={i} className="text-sm font-medium text-destructive">{flag}</p>
               ))}
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Quick Summary */}
+        {/* 2. Quick Summary — hero card, teal left border */}
         <div className="rounded-xl border-l-4 border-l-primary border border-primary/20 bg-primary/5 p-6 shadow-card">
           <div className="mb-2 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-primary" />
@@ -308,18 +261,18 @@ const VisitDetailPage = () => {
             </p>
           </div>
           {summary?.quick_summary && (
-            <p className="mt-3 text-sm text-muted-foreground">{highlightTerms(summary.quick_summary)}</p>
+            <p className="mt-3 text-base leading-relaxed text-foreground">{highlightTerms(summary.quick_summary)}</p>
           )}
         </div>
 
-        {/* Chief Complaint */}
+        {/* 3. Chief Complaint — own section, collapsible, default open */}
         {summary?.chief_complaint && (
           <CollapsibleSection icon={Stethoscope} title="Chief Complaint" defaultOpen onAskAI={() => askAI("Chief Complaint", `Explain the chief complaint: "${summary.chief_complaint}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.chief_complaint)}</p>
           </CollapsibleSection>
         )}
 
-        {/* Key Discussion Points */}
+        {/* 4. Key Discussion Points */}
         {(summary?.key_discussion_points || summary?.keyPoints) && (
           <CollapsibleSection icon={FileText} title="Key Discussion Points" defaultOpen onAskAI={() => askAI("Key Discussion Points", "Explain the key discussion points from my visit")}>
             <ul className="space-y-2">
@@ -332,16 +285,16 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
-        {/* Assessment */}
+        {/* 5. Assessment */}
         {summary?.assessment && (
-          <CollapsibleSection icon={Stethoscope} title="Assessment" onAskAI={() => askAI("Assessment", `Explain this assessment in simple terms: "${summary.assessment}"`)}>
+          <CollapsibleSection icon={Stethoscope} title="Assessment" defaultOpen onAskAI={() => askAI("Assessment", `Explain this assessment in simple terms: "${summary.assessment}"`)}>
             <p className="text-sm text-muted-foreground">{highlightTerms(summary.assessment)}</p>
           </CollapsibleSection>
         )}
 
-        {/* Plan */}
+        {/* 6. Plan */}
         {summary?.plan && (
-          <CollapsibleSection icon={Clipboard} title="Plan" onAskAI={() => askAI("Plan", "Explain the treatment plan from my visit")}>
+          <CollapsibleSection icon={Clipboard} title="Plan" defaultOpen onAskAI={() => askAI("Plan", "Explain the treatment plan from my visit")}>
             {Array.isArray(summary.plan) ? (
               <ul className="space-y-2">
                 {summary.plan.map((item: string, i: number) => (
@@ -356,9 +309,9 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
-        {/* Doctor's Recommendations */}
-        {summary?.doctors_recommendations && (
-          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" onAskAI={() => askAI("Doctor's Recommendations", "Explain the doctor's recommendations")}>
+        {/* 7. Doctor's Recommendations — numbered list */}
+        {summary?.doctors_recommendations?.length > 0 && (
+          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" defaultOpen onAskAI={() => askAI("Doctor's Recommendations", "Explain the doctor's recommendations")}>
             <ol className="space-y-3">
               {summary.doctors_recommendations.map((r: any, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -372,44 +325,46 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
-        {/* Medications */}
-        {summary?.medications && summary.medications.length > 0 && (
-          <CollapsibleSection icon={Pill} title="Medications Prescribed" onAskAI={() => askAI("Medications Prescribed", "Explain all the medications prescribed in this visit")}>
+        {/* 8. Medications Prescribed — cards with PBS badge */}
+        {summary?.medications?.length > 0 && (
+          <CollapsibleSection icon={Pill} title="Medications Prescribed" defaultOpen onAskAI={() => askAI("Medications Prescribed", "Explain all the medications prescribed in this visit")}>
             <div className="space-y-3">
               {summary.medications.map((m: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-card-foreground">{highlightTerms(m.name)} — {m.dosage}</p>
                     {m.is_pbs ? (
-                      <Badge className="bg-success/10 text-success border-success/20 text-xs">PBS ✓</Badge>
+                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">PBS ✓</Badge>
                     ) : (
                       <Badge variant="secondary" className="text-xs">Non-PBS</Badge>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">{m.frequency}</p>
-                  <p className="mt-1 text-sm text-primary">{m.explanation}</p>
+                  <p className="mt-1 text-sm text-primary/80">{m.explanation}</p>
                 </div>
               ))}
             </div>
           </CollapsibleSection>
         )}
 
-        {/* Referrals */}
+        {/* 9. Referrals */}
         {summary?.referrals?.length > 0 && (
-          <CollapsibleSection icon={UserPlus} title="Referrals" onAskAI={() => askAI("Referrals", "Tell me about the referrals from my visit")}>
+          <CollapsibleSection icon={UserPlus} title="Referrals" defaultOpen onAskAI={() => askAI("Referrals", "Tell me about the referrals from my visit")}>
             <div className="space-y-3">
               {summary.referrals.map((r: any, i: number) => (
                 <div key={i} className="rounded-lg border p-4">
                   <p className="font-medium text-card-foreground">To: {r.to}</p>
                   <p className="text-sm text-muted-foreground">Reason: {r.reason}</p>
-                  <p className="mt-1 text-sm text-primary">Next steps: {r.next_steps}</p>
+                  <div className="mt-2 rounded-md bg-primary/5 border border-primary/10 p-3">
+                    <p className="text-sm font-medium text-primary">Next steps: {r.next_steps}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </CollapsibleSection>
         )}
 
-        {/* Action Items */}
+        {/* 10. Next Actions — checklist */}
         <CollapsibleSection icon={ClipboardCheck} title="Next Actions" defaultOpen>
           {actions.length === 0 ? (
             <p className="text-sm text-muted-foreground">No action items for this visit.</p>
@@ -422,18 +377,18 @@ const VisitDetailPage = () => {
                     {a.description}
                   </p>
                   {a.category && (
-                    <Badge variant="secondary" className="text-xs capitalize">{a.category.replace("_", " ")}</Badge>
+                    <Badge variant="secondary" className="shrink-0 text-xs capitalize">{a.category.replace("_", " ")}</Badge>
                   )}
-                  {a.due_date && <span className="text-xs text-muted-foreground">{formatDate(a.due_date)}</span>}
+                  {a.due_date && <span className="shrink-0 text-xs text-muted-foreground">{formatDate(a.due_date)}</span>}
                 </div>
               ))}
             </div>
           )}
         </CollapsibleSection>
 
-        {/* Follow-up Questions */}
+        {/* 11. Suggested Follow-up Questions */}
         {summary?.follow_up_questions?.length > 0 && (
-          <CollapsibleSection icon={HelpCircle} title="Suggested Follow-up Questions">
+          <CollapsibleSection icon={HelpCircle} title="Suggested Follow-up Questions" defaultOpen>
             <div className="flex flex-wrap gap-2">
               {summary.follow_up_questions.map((q: string, i: number) => (
                 <button
@@ -448,12 +403,26 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
+        {/* 12. Medical Terms Glossary — collapsed accordion */}
+        {summary?.medical_terms?.length > 0 && (
+          <CollapsibleSection icon={BookOpen} title="Medical Terms Glossary">
+            <div className="space-y-2">
+              {summary.medical_terms.map((t: any, i: number) => (
+                <div key={i} className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
+                  <span className="shrink-0 rounded bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">{t.term}</span>
+                  <p className="text-sm text-muted-foreground">{t.explanation}</p>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
+
         {/* AI Disclaimer */}
         <div className="rounded-lg bg-muted/50 px-4 py-2.5">
           <p className="text-xs text-muted-foreground">AI-generated summary from your visit recording. May contain errors. Always verify with your healthcare provider.</p>
         </div>
 
-        {/* Trusted Resources */}
+        {/* Trusted Australian Resources */}
         {summary && <TrustedResourcesCard summary={summary} />}
 
         {/* Full Transcript */}
@@ -465,7 +434,7 @@ const VisitDetailPage = () => {
           </CollapsibleSection>
         )}
 
-        {/* Q&A Chat */}
+        {/* Ask a Question — chat */}
         <div className="rounded-xl border bg-card p-6 shadow-card">
           <div className="mb-3 flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
