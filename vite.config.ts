@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "date-fns/locale": path.resolve(__dirname, "node_modules/date-fns/locale/en-US.mjs"),
     },
   },
 }));
