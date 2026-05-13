@@ -14,6 +14,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          access_type: string
+          accessed_at: string
+          id: string
+          patient_id: string
+          practitioner_id: string
+          source: string
+          visit_id: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string
+          id?: string
+          patient_id: string
+          practitioner_id: string
+          source?: string
+          visit_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string
+          id?: string
+          patient_id?: string
+          practitioner_id?: string
+          source?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_logs_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_logs_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       action_items: {
         Row: {
           category: string | null
@@ -65,6 +117,61 @@ export type Database = {
           },
         ]
       }
+      care_team_members: {
+        Row: {
+          created_at: string
+          granted_at: string
+          id: string
+          invite_id: string | null
+          patient_id: string
+          practitioner_id: string
+          revoked_at: string | null
+          transcript_access: boolean
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string
+          id?: string
+          invite_id?: string | null
+          patient_id: string
+          practitioner_id: string
+          revoked_at?: string | null
+          transcript_access?: boolean
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string
+          id?: string
+          invite_id?: string | null
+          patient_id?: string
+          practitioner_id?: string
+          revoked_at?: string | null
+          transcript_access?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_team_members_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_team_members_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_team_members_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "practitioner_invites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -106,6 +213,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      clinics: {
+        Row: {
+          address: string | null
+          ahpra_practice_id: string | null
+          consent_form_text: string | null
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          postcode: string | null
+          slug: string
+          state: string | null
+          suburb: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          ahpra_practice_id?: string | null
+          consent_form_text?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          postcode?: string | null
+          slug: string
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          ahpra_practice_id?: string | null
+          consent_form_text?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          postcode?: string | null
+          slug?: string
+          state?: string | null
+          suburb?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       medications: {
         Row: {
@@ -167,6 +322,100 @@ export type Database = {
           },
         ]
       }
+      practitioner_invites: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_evergreen: boolean
+          label: string | null
+          max_uses: number | null
+          practitioner_id: string
+          revoked_at: string | null
+          token: string
+          use_count: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_evergreen?: boolean
+          label?: string | null
+          max_uses?: number | null
+          practitioner_id: string
+          revoked_at?: string | null
+          token: string
+          use_count?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_evergreen?: boolean
+          label?: string | null
+          max_uses?: number | null
+          practitioner_id?: string
+          revoked_at?: string | null
+          token?: string
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practitioner_invites_practitioner_id_fkey"
+            columns: ["practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practitioners: {
+        Row: {
+          ahpra_number: string
+          clinic_id: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          profession: string
+          updated_at: string | null
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          ahpra_number: string
+          clinic_id?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          profession: string
+          updated_at?: string | null
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          ahpra_number?: string
+          clinic_id?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          profession?: string
+          updated_at?: string | null
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practitioners_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age_range: string | null
@@ -214,12 +463,18 @@ export type Database = {
       }
       visits: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
+          clinic_id: string | null
           clinic_name: string | null
           created_at: string | null
+          created_by_practitioner_id: string | null
           doctor_name: string | null
+          gp_consent_given: boolean | null
           id: string
           recording_duration: number | null
           recording_url: string | null
+          source: string | null
           status: string | null
           summary: Json | null
           transcript: string | null
@@ -229,12 +484,18 @@ export type Database = {
           visit_type: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          clinic_id?: string | null
           clinic_name?: string | null
           created_at?: string | null
+          created_by_practitioner_id?: string | null
           doctor_name?: string | null
+          gp_consent_given?: boolean | null
           id?: string
           recording_duration?: number | null
           recording_url?: string | null
+          source?: string | null
           status?: string | null
           summary?: Json | null
           transcript?: string | null
@@ -244,12 +505,18 @@ export type Database = {
           visit_type?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          clinic_id?: string | null
           clinic_name?: string | null
           created_at?: string | null
+          created_by_practitioner_id?: string | null
           doctor_name?: string | null
+          gp_consent_given?: boolean | null
           id?: string
           recording_duration?: number | null
           recording_url?: string | null
+          source?: string | null
           status?: string | null
           summary?: Json | null
           transcript?: string | null
@@ -259,6 +526,27 @@ export type Database = {
           visit_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "visits_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_created_by_practitioner_id_fkey"
+            columns: ["created_by_practitioner_id"]
+            isOneToOne: false
+            referencedRelation: "practitioners"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "visits_user_id_fkey"
             columns: ["user_id"]
@@ -297,6 +585,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_practitioner_id: { Args: never; Returns: string }
       get_waitlist_count: { Args: never; Returns: number }
       is_owner_of_visit: { Args: { _visit_id: string }; Returns: boolean }
     }

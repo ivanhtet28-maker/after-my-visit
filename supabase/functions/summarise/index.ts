@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY")!;
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
@@ -91,22 +91,25 @@ Deno.serve(async (req) => {
 Visit transcript:
 ${visit.transcript}`;
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
+    // Call Google Gemini API (OpenAI-compatible endpoint)
+    const aiResponse = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${geminiApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userMessage },
+          ],
+          temperature: 0.3,
+        }),
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userMessage },
-        ],
-        temperature: 0.3,
-      }),
-    });
+    );
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
@@ -133,10 +136,17 @@ ${visit.transcript}`;
       });
     }
 
-    // Update visit
+    // Status depends on visit source:
+    // - GP-led visits (native_recording, chrome_extension_paste) await GP approval before patient sees them
+    // - patient_recorded fallback skips approval gate
+    const isGpLed = visit.source === "native_recording" || visit.source === "chrome_extension_paste";
+    const nextStatus = isGpLed ? "pending_approval" : "complete";
+    const approvedAt = isGpLed ? null : new Date().toISOString();
+
     await supabase.from("visits").update({
       summary,
-      status: "complete",
+      status: nextStatus,
+      approved_at: approvedAt,
     }).eq("id", visit_id);
 
     // Create action items

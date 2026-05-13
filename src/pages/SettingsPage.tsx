@@ -92,7 +92,7 @@ const SettingsPage = () => {
           <p className="mb-4 text-sm text-muted-foreground">
             {isDemoMode
               ? "Demo mode is ON — all pages show hardcoded sample data. No database calls are made."
-              : "Enable demo mode to showcase AfterVisit with realistic Australian sample data. No database required."}
+              : "Enable demo mode to showcase Clarity Health with realistic Australian sample data. No database required."}
           </p>
           {isDemoMode && (
             <p className="text-xs text-accent">Share this link to show anyone the demo: <span className="font-mono">?demo=true</span></p>

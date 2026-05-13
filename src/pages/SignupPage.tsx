@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +28,11 @@ const SignupPage = () => {
       toast.error(error.message);
     } else {
       toast.success("Account created!");
-      navigate("/onboarding");
+      navigate(
+        inviteToken
+          ? `/onboarding?invite=${encodeURIComponent(inviteToken)}`
+          : "/onboarding",
+      );
     }
   };
 
@@ -38,6 +44,11 @@ const SignupPage = () => {
           <p className="mt-2 text-muted-foreground">Your AI Health Companion</p>
         </div>
         <div className="rounded-xl border bg-card p-8 shadow-card">
+          {inviteToken && (
+            <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-card-foreground">
+              You'll be added to your practitioner's care team after signup.
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
@@ -56,7 +67,12 @@ const SignupPage = () => {
           </p>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/login" className="font-medium text-primary hover:underline">Log in</Link>
+            <Link
+              to={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : "/login"}
+              className="font-medium text-primary hover:underline"
+            >
+              Log in
+            </Link>
           </p>
         </div>
       </div>

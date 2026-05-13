@@ -9,8 +9,8 @@ const eightWeeksAgo = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
 const nineDaysAgo = new Date(Date.now() - 9 * 24 * 60 * 60 * 1000);
 
 export const DEMO_PATIENT = {
-  id: "demo-karen-id",
-  first_name: "Karen",
+  id: "demo-jessica-id",
+  first_name: "Jessica",
   last_name: "Mitchell",
   age: 58,
   age_range: "56-65",
@@ -45,7 +45,7 @@ export const DEMO_VISITS_V2 = [
   // ── Visit 1 — GP check-up (2 days ago) ──
   {
     id: "demo-v2-visit-1",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. Helen Zhao",
     clinic_name: "Werribee Plaza Medical Centre",
     visit_type: "gp",
@@ -57,7 +57,7 @@ export const DEMO_VISITS_V2 = [
     created_at: twoDaysAgo.toISOString(),
     updated_at: twoDaysAgo.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Morning Karen, come on in. How are you going?
+    transcript: `Doctor: Morning Jessica, come on in. How are you going?
 Patient: Not too bad thanks Helen. A bit tired but otherwise OK.
 Doctor: Let's have a look at your bloods that came back. So your HbA1c has gone up a bit — it was 7.2 last time and now it's sitting at 7.8.
 Patient: Oh. That's not great is it?
@@ -89,7 +89,7 @@ Doctor: Great. Let's book you in for six weeks' time. We'll redo the HbA1c then 
 Patient: Right, I'll sort that out.
 Doctor: Any questions?
 Patient: No, I think that's everything. Thanks Helen.
-Doctor: No worries Karen. Pick up your scripts from reception and don't forget to drink lots of water with the new tablet. See you in six weeks.`,
+Doctor: No worries Jessica. Pick up your scripts from reception and don't forget to drink lots of water with the new tablet. See you in six weeks.`,
     summary: {
       quick_summary: "Diabetes review — HbA1c risen to 7.8% (was 7.2%). New medication Empagliflozin added to Metformin. Cholesterol medication Atorvastatin increased from 20mg to 40mg. Blood pressure stable. Vitamin D still low. Flu vaccination given. Knee improving with physio.",
       chief_complaint: "Diabetes management review and blood test results discussion",
@@ -159,7 +159,7 @@ Doctor: No worries Karen. Pick up your scripts from reception and don't forget t
   // ── Visit 2 — Orthopaedic specialist (10 days ago) ──
   {
     id: "demo-v2-visit-2",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. James Nguyen",
     clinic_name: "Western Orthopaedics — Werribee",
     visit_type: "specialist",
@@ -171,7 +171,7 @@ Doctor: No worries Karen. Pick up your scripts from reception and don't forget t
     created_at: tenDaysAgo.toISOString(),
     updated_at: tenDaysAgo.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Hi Karen, come in. How's the knee been going since we last spoke?
+    transcript: `Doctor: Hi Jessica, come in. How's the knee been going since we last spoke?
 Patient: Actually much better, Dr. Nguyen. The physio has been really helpful. I can do the stairs now without hanging onto the railing.
 Doctor: That's great to hear. And the pain — where would you rate it now on a scale of one to ten?
 Patient: Maybe a three or four most days. It used to be a seven.
@@ -189,7 +189,7 @@ Doctor: I know you are. Let's review in three months. If things are still going 
 Patient: Sounds good. Oh — can your receptionist help me claim the Medicare rebate today?
 Doctor: Absolutely, she'll sort that out for you on the way out. Today's gap is about ninety-five dollars.
 Patient: Ouch. But worth it.
-Doctor: You're doing really well Karen. Keep up the physio.`,
+Doctor: You're doing really well Jessica. Keep up the physio.`,
     summary: {
       quick_summary: "Ortho follow-up for right knee osteoarthritis. Good progress with physiotherapy — pain dropped from 7/10 to 3-4/10. X-ray shows no worsening. Continue physio 4 more weeks then home exercise program. Switch from Ibuprofen to Paracetamol. Review in 3 months.",
       chief_complaint: "Follow-up for right knee osteoarthritis — assessing physio progress and reviewing imaging.",
@@ -246,7 +246,7 @@ Doctor: You're doing really well Karen. Keep up the physio.`,
   // ── Visit 3 — Endocrinologist (3 weeks ago) ──
   {
     id: "demo-v2-visit-3",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. Anika Sharma",
     clinic_name: "Sunshine Hospital Diabetes Clinic",
     visit_type: "specialist",
@@ -258,7 +258,7 @@ Doctor: You're doing really well Karen. Keep up the physio.`,
     created_at: threeWeeksAgo.toISOString(),
     updated_at: threeWeeksAgo.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Good morning Karen, I'm Dr. Sharma. Your GP Dr. Zhao referred you to us for your diabetes management. How are you going?
+    transcript: `Doctor: Good morning Jessica, I'm Dr. Sharma. Your GP Dr. Zhao referred you to us for your diabetes management. How are you going?
 Patient: Hi Doctor. Yeah, I've been a bit worried about my sugar levels. My GP said they've gone up.
 Doctor: Yes, let's talk about that. Your HbA1c has gone from 7.2 to 7.8 percent over the past six months. I've also been looking at the data from your continuous glucose monitor — the Libre sensor you've been wearing.
 Patient: Oh yes, I've been wearing that for the last two weeks.
@@ -335,7 +335,7 @@ Patient: OK. Thank you Dr. Sharma.`,
       ],
       medical_terms: [
         { term: "SGLT2 inhibitor", explanation: "A class of diabetes medication (like Empagliflozin) that works by blocking sugar re-absorption in the kidneys, causing excess sugar to be removed in your urine." },
-        { term: "eGFR", explanation: "Estimated Glomerular Filtration Rate — a blood test that measures how well your kidneys are filtering waste. Normal is above 60. Karen's is 78, which is healthy." },
+        { term: "eGFR", explanation: "Estimated Glomerular Filtration Rate — a blood test that measures how well your kidneys are filtering waste. Normal is above 60. Jessica's is 78, which is healthy." },
         { term: "urine albumin", explanation: "A urine test checking for protein leak from the kidneys. Protein in urine can be an early sign of kidney damage from diabetes." },
         { term: "CGM", explanation: "Continuous Glucose Monitor — a small sensor worn on your arm (like the Libre) that checks your blood sugar every few minutes and shows patterns over time." },
         { term: "post-prandial", explanation: "After eating a meal. 'Post-prandial hyperglycaemia' means high blood sugar after meals." },
@@ -348,7 +348,7 @@ Patient: OK. Thank you Dr. Sharma.`,
   // ── Visit 4 — Eye specialist (5 weeks ago) ──
   {
     id: "demo-v2-visit-4",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. Michael Torres",
     clinic_name: "Wyndham Eye Clinic",
     visit_type: "specialist",
@@ -360,13 +360,13 @@ Patient: OK. Thank you Dr. Sharma.`,
     created_at: fiveWeeksAgo.toISOString(),
     updated_at: fiveWeeksAgo.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Hi Karen, I'm Dr. Torres. Your GP Dr. Zhao referred you for your annual diabetic eye screening. How's your vision been?
+    transcript: `Doctor: Hi Jessica, I'm Dr. Torres. Your GP Dr. Zhao referred you for your annual diabetic eye screening. How's your vision been?
 Patient: Hello. Honestly, it's been fine. I just use reading glasses.
 Doctor: Good to hear. I'm going to put some drops in your eyes to dilate your pupils so I can get a good look at the back of your eyes — the retina. It'll make things a bit blurry for a couple of hours afterwards, so don't drive home.
 Patient: Oh, I got my husband to drop me off.
 Doctor: Perfect. So the drops take about twenty minutes to work, then I'll do the examination and take some photos.
 [After examination]
-Doctor: Great news Karen. I've had a thorough look and there's no sign of diabetic retinopathy. The blood vessels at the back of your eyes look healthy — no leaking, no swelling, no new vessel growth.
+Doctor: Great news Jessica. I've had a thorough look and there's no sign of diabetic retinopathy. The blood vessels at the back of your eyes look healthy — no leaking, no swelling, no new vessel growth.
 Patient: Oh thank goodness. I was worried about that.
 Doctor: It's a really important check to do every year with diabetes, but you're all clear. I did notice some very mild age-related changes in the lens — what we call early nuclear sclerosis. It's completely normal for your age and isn't affecting your vision.
 Patient: Is that cataracts?
@@ -423,7 +423,7 @@ Doctor: You're welcome. The gap today is forty-five dollars after the Medicare r
   // ── Visit 5 — GP sick visit (6 weeks ago) ──
   {
     id: "demo-v2-visit-5",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. Raj Kumar",
     clinic_name: "Werribee Plaza Medical Centre",
     visit_type: "gp",
@@ -435,7 +435,7 @@ Doctor: You're welcome. The gap today is forty-five dollars after the Medicare r
     created_at: sixWeeksAgo.toISOString(),
     updated_at: sixWeeksAgo.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Hi Karen, I'm Dr. Kumar. Dr. Zhao is away today. I can see you're not feeling well — what's been happening?
+    transcript: `Doctor: Hi Jessica, I'm Dr. Kumar. Dr. Zhao is away today. I can see you're not feeling well — what's been happening?
 Patient: I've had really bad nausea and vomiting since yesterday. And diarrhoea. I can't keep anything down.
 Doctor: How many times have you vomited?
 Patient: Maybe five or six times since last night. And I've been on the toilet constantly.
@@ -515,7 +515,7 @@ Patient: Thank you Doctor.`,
   // ── Visit 6 — Telehealth follow-up (6 weeks ago + 3 days) ──
   {
     id: "demo-v2-visit-6",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. Helen Zhao",
     clinic_name: "Werribee Plaza Medical Centre",
     visit_type: "telehealth",
@@ -527,7 +527,7 @@ Patient: Thank you Doctor.`,
     created_at: sixWeeksPlusThree.toISOString(),
     updated_at: sixWeeksPlusThree.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Hi Karen, it's Helen. How are you feeling after the gastro?
+    transcript: `Doctor: Hi Jessica, it's Helen. How are you feeling after the gastro?
 Patient: So much better, thanks Helen. I started eating properly again yesterday — had some toast and soup, and this morning I managed cereal and a cup of tea.
 Doctor: That's great. So you've been eating and drinking normally for about 24 hours now?
 Patient: Yes, since yesterday lunchtime.
@@ -574,7 +574,7 @@ Doctor: No worries. Ring us if anything comes up. Otherwise I'll see you at your
   // ── Visit 7 — Physio session (5 days ago) ──
   {
     id: "demo-v2-visit-7",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Emma Bradshaw",
     clinic_name: "Western Physiotherapy — Werribee",
     visit_type: "allied_health",
@@ -586,7 +586,7 @@ Doctor: No worries. Ring us if anything comes up. Otherwise I'll see you at your
     created_at: fiveDaysAgo.toISOString(),
     updated_at: fiveDaysAgo.toISOString(),
     recording_url: null,
-    transcript: `Physio: Hi Karen, session number eight today. How's the knee been this week?
+    transcript: `Physio: Hi Jessica, session number eight today. How's the knee been this week?
 Patient: Really good actually. I did the stairs at work twice yesterday without even thinking about it.
 Physio: That's a fantastic sign. Let me have a look at your range of motion. Bend it for me... good, and straighten... great. Your range has improved a lot since we started.
 Patient: I can feel the difference.
@@ -649,7 +649,7 @@ Patient: Brilliant, thanks Emma.`,
   // ── Visit 8 — GP medication review (8 weeks ago) ──
   {
     id: "demo-v2-visit-8",
-    user_id: "demo-karen-id",
+    user_id: "demo-jessica-id",
     doctor_name: "Dr. Helen Zhao",
     clinic_name: "Werribee Plaza Medical Centre",
     visit_type: "gp",
@@ -661,7 +661,7 @@ Patient: Brilliant, thanks Emma.`,
     created_at: eightWeeksAgo.toISOString(),
     updated_at: eightWeeksAgo.toISOString(),
     recording_url: null,
-    transcript: `Doctor: Hi Karen, come in. Today we're doing your routine BP check and medication review. How have you been?
+    transcript: `Doctor: Hi Jessica, come in. Today we're doing your routine BP check and medication review. How have you been?
 Patient: Pretty good thanks Helen. No major dramas.
 Doctor: Good. Let me check your blood pressure... 132 over 82. That's well controlled.
 Patient: Oh good. It was high last time wasn't it?
@@ -731,40 +731,40 @@ Doctor: Everything else looks good. Keep up the walking, and I'll see you after 
 // ── Action Items (15 total — mix of statuses) ──
 export const DEMO_ACTION_ITEMS_V2 = [
   // Visit 1 (GP — 2 days ago)
-  { id: "demo-v2-action-1", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", description: "Pick up new Empagliflozin and updated Atorvastatin scripts from pharmacy", due_date: twoDaysAgo.toISOString().split("T")[0], status: "complete", category: "medication", completed_at: twoDaysAgo.toISOString(), created_at: twoDaysAgo.toISOString() },
-  { id: "demo-v2-action-2", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", description: "Book fasting blood test for 6 weeks' time (HbA1c, lipids, kidney, liver)", due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "test", completed_at: null, created_at: twoDaysAgo.toISOString() },
-  { id: "demo-v2-action-3", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", description: "Book follow-up with Dr. Zhao in 6 weeks for diabetes cycle of care", due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "follow_up", completed_at: null, created_at: twoDaysAgo.toISOString() },
-  { id: "demo-v2-action-4", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", description: "Check blood sugar before and after dinner daily for 2 weeks", due_date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: twoDaysAgo.toISOString() },
-  { id: "demo-v2-action-5", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", description: "Flu vaccination — done today at the clinic", due_date: twoDaysAgo.toISOString().split("T")[0], status: "complete", category: "vaccination", completed_at: twoDaysAgo.toISOString(), created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-action-1", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", description: "Pick up new Empagliflozin and updated Atorvastatin scripts from pharmacy", due_date: twoDaysAgo.toISOString().split("T")[0], status: "complete", category: "medication", completed_at: twoDaysAgo.toISOString(), created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-action-2", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", description: "Book fasting blood test for 6 weeks' time (HbA1c, lipids, kidney, liver)", due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "test", completed_at: null, created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-action-3", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", description: "Book follow-up with Dr. Zhao in 6 weeks for diabetes cycle of care", due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "follow_up", completed_at: null, created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-action-4", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", description: "Check blood sugar before and after dinner daily for 2 weeks", due_date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-action-5", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", description: "Flu vaccination — done today at the clinic", due_date: twoDaysAgo.toISOString().split("T")[0], status: "complete", category: "vaccination", completed_at: twoDaysAgo.toISOString(), created_at: twoDaysAgo.toISOString() },
 
   // Visit 2 (Ortho — 10 days ago)
-  { id: "demo-v2-action-6", user_id: "demo-karen-id", visit_id: "demo-v2-visit-2", description: "Book 3-month follow-up with Dr. Nguyen", due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "follow_up", completed_at: null, created_at: tenDaysAgo.toISOString() },
-  { id: "demo-v2-action-7", user_id: "demo-karen-id", visit_id: "demo-v2-visit-2", description: "Claim Medicare rebate for specialist consultation ($95 gap)", due_date: tenDaysAgo.toISOString().split("T")[0], status: "pending", category: "follow_up", completed_at: null, created_at: tenDaysAgo.toISOString() },
+  { id: "demo-v2-action-6", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-2", description: "Book 3-month follow-up with Dr. Nguyen", due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "follow_up", completed_at: null, created_at: tenDaysAgo.toISOString() },
+  { id: "demo-v2-action-7", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-2", description: "Claim Medicare rebate for specialist consultation ($95 gap)", due_date: tenDaysAgo.toISOString().split("T")[0], status: "pending", category: "follow_up", completed_at: null, created_at: tenDaysAgo.toISOString() },
 
   // Visit 3 (Endo — 3 weeks ago)
-  { id: "demo-v2-action-8", user_id: "demo-karen-id", visit_id: "demo-v2-visit-3", description: "Book appointment with Diabetes Educator at Sunshine Hospital", due_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "referral", completed_at: null, created_at: threeWeeksAgo.toISOString() },
-  { id: "demo-v2-action-9", user_id: "demo-karen-id", visit_id: "demo-v2-visit-3", description: "Book appointment with Accredited Practising Dietitian", due_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "referral", completed_at: null, created_at: threeWeeksAgo.toISOString() },
-  { id: "demo-v2-action-10", user_id: "demo-karen-id", visit_id: "demo-v2-visit-3", description: "Halve dinner carbohydrate portions", due_date: threeWeeksAgo.toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: threeWeeksAgo.toISOString() },
+  { id: "demo-v2-action-8", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-3", description: "Book appointment with Diabetes Educator at Sunshine Hospital", due_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "referral", completed_at: null, created_at: threeWeeksAgo.toISOString() },
+  { id: "demo-v2-action-9", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-3", description: "Book appointment with Accredited Practising Dietitian", due_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "referral", completed_at: null, created_at: threeWeeksAgo.toISOString() },
+  { id: "demo-v2-action-10", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-3", description: "Halve dinner carbohydrate portions", due_date: threeWeeksAgo.toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: threeWeeksAgo.toISOString() },
 
   // Visit 7 (Physio — 5 days ago)
-  { id: "demo-v2-action-11", user_id: "demo-karen-id", visit_id: "demo-v2-visit-7", description: "Do home exercises daily as written by physio", due_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: fiveDaysAgo.toISOString() },
-  { id: "demo-v2-action-12", user_id: "demo-karen-id", visit_id: "demo-v2-visit-7", description: "Buy green resistance band ($12 from clinic or sports shop)", due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: fiveDaysAgo.toISOString() },
-  { id: "demo-v2-action-13", user_id: "demo-karen-id", visit_id: "demo-v2-visit-7", description: "Continue 30-minute daily walks", due_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: fiveDaysAgo.toISOString() },
+  { id: "demo-v2-action-11", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-7", description: "Do home exercises daily as written by physio", due_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: fiveDaysAgo.toISOString() },
+  { id: "demo-v2-action-12", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-7", description: "Buy green resistance band ($12 from clinic or sports shop)", due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: fiveDaysAgo.toISOString() },
+  { id: "demo-v2-action-13", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-7", description: "Continue 30-minute daily walks", due_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "pending", category: "lifestyle", completed_at: null, created_at: fiveDaysAgo.toISOString() },
 
   // Visit 8 (GP med review — 8 weeks ago)
-  { id: "demo-v2-action-14", user_id: "demo-karen-id", visit_id: "demo-v2-visit-8", description: "Book endocrinologist appointment with Dr. Sharma", due_date: new Date(Date.now() - 49 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "complete", category: "follow_up", completed_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), created_at: eightWeeksAgo.toISOString() },
-  { id: "demo-v2-action-15", user_id: "demo-karen-id", visit_id: "demo-v2-visit-8", description: "Pick up updated Atorvastatin 40mg script from pharmacy", due_date: eightWeeksAgo.toISOString().split("T")[0], status: "complete", category: "medication", completed_at: eightWeeksAgo.toISOString(), created_at: eightWeeksAgo.toISOString() },
+  { id: "demo-v2-action-14", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-8", description: "Book endocrinologist appointment with Dr. Sharma", due_date: new Date(Date.now() - 49 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], status: "complete", category: "follow_up", completed_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), created_at: eightWeeksAgo.toISOString() },
+  { id: "demo-v2-action-15", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-8", description: "Pick up updated Atorvastatin 40mg script from pharmacy", due_date: eightWeeksAgo.toISOString().split("T")[0], status: "complete", category: "medication", completed_at: eightWeeksAgo.toISOString(), created_at: eightWeeksAgo.toISOString() },
 ];
 
 // ── Medications (7 active) ──
 export const DEMO_MEDICATIONS_V2 = [
-  { id: "demo-v2-med-1", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", name: "Empagliflozin (Jardiance)", dosage: "10mg", frequency: "Once daily in the morning", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: twoDaysAgo.toISOString().split("T")[0], is_pbs: true, plain_explanation: "A newer diabetes medication (SGLT2 inhibitor) that helps your kidneys remove excess sugar through your urine. Also benefits your heart and kidneys. Drink plenty of water — you may wee more often at first.", status: "active", created_at: twoDaysAgo.toISOString() },
-  { id: "demo-v2-med-2", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", name: "Atorvastatin", dosage: "40mg", frequency: "Once daily at night", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: twoDaysAgo.toISOString().split("T")[0], is_pbs: true, plain_explanation: "A cholesterol-lowering statin. Dose increased from 20mg because your LDL cholesterol crept up. Take at night for best effect. Report any unusual muscle aches.", status: "active", created_at: twoDaysAgo.toISOString() },
-  { id: "demo-v2-med-3", user_id: "demo-karen-id", visit_id: null, name: "Metformin", dosage: "1000mg", frequency: "Twice daily with meals", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2019-03-15", is_pbs: true, plain_explanation: "The first-line diabetes medication. It reduces the amount of sugar your liver releases and helps your body respond better to insulin. Take with food to reduce stomach upset. STOP if you have gastro or can't eat/drink normally.", status: "active", created_at: new Date(Date.now() - 365 * 6 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "demo-v2-med-4", user_id: "demo-karen-id", visit_id: null, name: "Perindopril", dosage: "5mg", frequency: "Once daily in the morning", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2018-07-20", is_pbs: true, plain_explanation: "A blood pressure medication (ACE inhibitor). It relaxes blood vessels to lower blood pressure and also helps protect your kidneys — important for diabetic patients.", status: "active", created_at: new Date(Date.now() - 365 * 7 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "demo-v2-med-5", user_id: "demo-karen-id", visit_id: null, name: "Vitamin D", dosage: "1000IU", frequency: "Once daily", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2024-06-10", is_pbs: false, plain_explanation: "A vitamin supplement to treat your deficiency (level 42, target >50). Important for bone health and immune function. Keep next to your toothbrush as a reminder.", status: "active", created_at: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "demo-v2-med-6", user_id: "demo-karen-id", visit_id: null, name: "Pantoprazole", dosage: "40mg", frequency: "Once daily before breakfast", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2022-08-05", is_pbs: true, plain_explanation: "A proton pump inhibitor for your reflux (GORD). It reduces stomach acid production. Take on an empty stomach 30 minutes before breakfast.", status: "active", created_at: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "demo-v2-med-7", user_id: "demo-karen-id", visit_id: "demo-v2-visit-2", name: "Paracetamol", dosage: "1000mg (two 500mg tablets)", frequency: "Up to 3 times daily as needed", prescribing_doctor: "Dr. James Nguyen", date_prescribed: tenDaysAgo.toISOString().split("T")[0], is_pbs: false, plain_explanation: "A pain reliever for your knee. Safer than Ibuprofen given your diabetes and blood pressure medications. Take with or without food.", status: "active", created_at: tenDaysAgo.toISOString() },
+  { id: "demo-v2-med-1", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", name: "Empagliflozin (Jardiance)", dosage: "10mg", frequency: "Once daily in the morning", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: twoDaysAgo.toISOString().split("T")[0], is_pbs: true, plain_explanation: "A newer diabetes medication (SGLT2 inhibitor) that helps your kidneys remove excess sugar through your urine. Also benefits your heart and kidneys. Drink plenty of water — you may wee more often at first.", status: "active", created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-med-2", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", name: "Atorvastatin", dosage: "40mg", frequency: "Once daily at night", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: twoDaysAgo.toISOString().split("T")[0], is_pbs: true, plain_explanation: "A cholesterol-lowering statin. Dose increased from 20mg because your LDL cholesterol crept up. Take at night for best effect. Report any unusual muscle aches.", status: "active", created_at: twoDaysAgo.toISOString() },
+  { id: "demo-v2-med-3", user_id: "demo-jessica-id", visit_id: null, name: "Metformin", dosage: "1000mg", frequency: "Twice daily with meals", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2019-03-15", is_pbs: true, plain_explanation: "The first-line diabetes medication. It reduces the amount of sugar your liver releases and helps your body respond better to insulin. Take with food to reduce stomach upset. STOP if you have gastro or can't eat/drink normally.", status: "active", created_at: new Date(Date.now() - 365 * 6 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "demo-v2-med-4", user_id: "demo-jessica-id", visit_id: null, name: "Perindopril", dosage: "5mg", frequency: "Once daily in the morning", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2018-07-20", is_pbs: true, plain_explanation: "A blood pressure medication (ACE inhibitor). It relaxes blood vessels to lower blood pressure and also helps protect your kidneys — important for diabetic patients.", status: "active", created_at: new Date(Date.now() - 365 * 7 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "demo-v2-med-5", user_id: "demo-jessica-id", visit_id: null, name: "Vitamin D", dosage: "1000IU", frequency: "Once daily", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2024-06-10", is_pbs: false, plain_explanation: "A vitamin supplement to treat your deficiency (level 42, target >50). Important for bone health and immune function. Keep next to your toothbrush as a reminder.", status: "active", created_at: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "demo-v2-med-6", user_id: "demo-jessica-id", visit_id: null, name: "Pantoprazole", dosage: "40mg", frequency: "Once daily before breakfast", prescribing_doctor: "Dr. Helen Zhao", date_prescribed: "2022-08-05", is_pbs: true, plain_explanation: "A proton pump inhibitor for your reflux (GORD). It reduces stomach acid production. Take on an empty stomach 30 minutes before breakfast.", status: "active", created_at: new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "demo-v2-med-7", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-2", name: "Paracetamol", dosage: "1000mg (two 500mg tablets)", frequency: "Up to 3 times daily as needed", prescribing_doctor: "Dr. James Nguyen", date_prescribed: tenDaysAgo.toISOString().split("T")[0], is_pbs: false, plain_explanation: "A pain reliever for your knee. Safer than Ibuprofen given your diabetes and blood pressure medications. Take with or without food.", status: "active", created_at: tenDaysAgo.toISOString() },
 ];
 
 // ── Lab Results ──
@@ -804,10 +804,10 @@ export const DEMO_LAB_RESULTS = [
 
 // ── Chat Messages (6 for Visit 1) ──
 export const DEMO_CHAT_MESSAGES_V2 = [
-  { id: "demo-v2-chat-1", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", role: "user", content: "Why did Dr. Zhao add a new diabetes medication? Isn't the Metformin enough?", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-  { id: "demo-v2-chat-2", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", role: "assistant", content: "Great question, Karen. Dr. Zhao added Empagliflozin (Jardiance) because your HbA1c has risen from 7.2% to 7.8%, which means the Metformin alone isn't controlling your blood sugar as well as it used to.\n\nMetformin works by reducing the sugar your liver produces and helping your body use insulin better. Empagliflozin works completely differently — it helps your kidneys flush excess sugar out through your urine.\n\nUsing two medications that work in different ways gives better overall blood sugar control. Dr. Sharma (your endocrinologist) also supported this choice because Empagliflozin has additional benefits:\n\n• It protects your heart — reducing the risk of heart failure\n• It protects your kidneys — slowing any diabetes-related damage\n• Some patients lose 2-3kg, which also helps blood sugar and knee pain\n\nThe holiday period likely caused the rise, and Dr. Zhao expects the combination of the new medication plus getting back to regular exercise should bring your HbA1c back down.\n\n*This is general information based on your visit — always check with Dr. Zhao if you're concerned.*", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 30000).toISOString() },
-  { id: "demo-v2-chat-3", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", role: "user", content: "Yes, will I get side effects?", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 120000).toISOString() },
-  { id: "demo-v2-chat-4", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", role: "assistant", content: "Most people tolerate Empagliflozin well. Here's what to look out for:\n\n**Common (and expected):**\n• More frequent urination — this is the medication working, flushing sugar out through your kidneys. It usually settles after 1-2 weeks.\n• Drink plenty of water — aim for at least 2 litres daily. This is really important.\n\n**Less common but watch for:**\n• Urinary tract infection (UTI) — burning when you wee, needing to go urgently. See your GP if this happens.\n• Thrush infections — the extra sugar in your urine can sometimes cause this. Good hygiene helps prevent it.\n• Mild dizziness — especially in the first few days. Stay hydrated.\n\n**Positive side effects:**\n• Weight loss of 2-3kg for some patients — a nice bonus\n• Lower blood pressure — helpful given yours is borderline\n\nDr. Zhao asked you to check your blood sugar before and after dinner for the next 2 weeks. This will help track how the new medication is working.\n\n*If you feel unwell, dizzy, or notice signs of a UTI, contact the clinic. Don't stop the medication without speaking to your doctor first.*", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 150000).toISOString() },
-  { id: "demo-v2-chat-5", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", role: "user", content: "How much will the new medications cost with PBS?", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 300000).toISOString() },
-  { id: "demo-v2-chat-6", user_id: "demo-karen-id", visit_id: "demo-v2-visit-1", role: "assistant", content: "Both Empagliflozin (Jardiance) and Atorvastatin are listed on the PBS, which means you'll pay a subsidised price.\n\n**Current PBS co-payment (general patient):**\n• Maximum $31.60 per script (as of 2025)\n• So two scripts would be approximately $63.20 total\n\n**PBS Safety Net:**\n• Once you and your family reach $1,563.50 in PBS prescriptions per calendar year, scripts drop to $0 for the rest of the year\n• Given your 7 regular medications, you may reach this threshold — ask your pharmacist to check\n\n**Tips to save:**\n• Ask your pharmacist if you qualify for a concession card rate ($7.70 per script)\n• Some pharmacies offer $1 discount for returning medication packaging\n• Your pharmacist can check if a generic brand is available, which may be slightly cheaper\n\n*These figures are based on current PBS pricing. Your pharmacist can give you the exact cost for your situation.*", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 330000).toISOString() },
+  { id: "demo-v2-chat-1", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", role: "user", content: "Why did Dr. Zhao add a new diabetes medication? Isn't the Metformin enough?", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: "demo-v2-chat-2", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", role: "assistant", content: "Great question, Jessica. Dr. Zhao added Empagliflozin (Jardiance) because your HbA1c has risen from 7.2% to 7.8%, which means the Metformin alone isn't controlling your blood sugar as well as it used to.\n\nMetformin works by reducing the sugar your liver produces and helping your body use insulin better. Empagliflozin works completely differently — it helps your kidneys flush excess sugar out through your urine.\n\nUsing two medications that work in different ways gives better overall blood sugar control. Dr. Sharma (your endocrinologist) also supported this choice because Empagliflozin has additional benefits:\n\n• It protects your heart — reducing the risk of heart failure\n• It protects your kidneys — slowing any diabetes-related damage\n• Some patients lose 2-3kg, which also helps blood sugar and knee pain\n\nThe holiday period likely caused the rise, and Dr. Zhao expects the combination of the new medication plus getting back to regular exercise should bring your HbA1c back down.\n\n*This is general information based on your visit — always check with Dr. Zhao if you're concerned.*", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 30000).toISOString() },
+  { id: "demo-v2-chat-3", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", role: "user", content: "Yes, will I get side effects?", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 120000).toISOString() },
+  { id: "demo-v2-chat-4", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", role: "assistant", content: "Most people tolerate Empagliflozin well. Here's what to look out for:\n\n**Common (and expected):**\n• More frequent urination — this is the medication working, flushing sugar out through your kidneys. It usually settles after 1-2 weeks.\n• Drink plenty of water — aim for at least 2 litres daily. This is really important.\n\n**Less common but watch for:**\n• Urinary tract infection (UTI) — burning when you wee, needing to go urgently. See your GP if this happens.\n• Thrush infections — the extra sugar in your urine can sometimes cause this. Good hygiene helps prevent it.\n• Mild dizziness — especially in the first few days. Stay hydrated.\n\n**Positive side effects:**\n• Weight loss of 2-3kg for some patients — a nice bonus\n• Lower blood pressure — helpful given yours is borderline\n\nDr. Zhao asked you to check your blood sugar before and after dinner for the next 2 weeks. This will help track how the new medication is working.\n\n*If you feel unwell, dizzy, or notice signs of a UTI, contact the clinic. Don't stop the medication without speaking to your doctor first.*", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 150000).toISOString() },
+  { id: "demo-v2-chat-5", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", role: "user", content: "How much will the new medications cost with PBS?", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 300000).toISOString() },
+  { id: "demo-v2-chat-6", user_id: "demo-jessica-id", visit_id: "demo-v2-visit-1", role: "assistant", content: "Both Empagliflozin (Jardiance) and Atorvastatin are listed on the PBS, which means you'll pay a subsidised price.\n\n**Current PBS co-payment (general patient):**\n• Maximum $31.60 per script (as of 2025)\n• So two scripts would be approximately $63.20 total\n\n**PBS Safety Net:**\n• Once you and your family reach $1,563.50 in PBS prescriptions per calendar year, scripts drop to $0 for the rest of the year\n• Given your 7 regular medications, you may reach this threshold — ask your pharmacist to check\n\n**Tips to save:**\n• Ask your pharmacist if you qualify for a concession card rate ($7.70 per script)\n• Some pharmacies offer $1 discount for returning medication packaging\n• Your pharmacist can check if a generic brand is available, which may be slightly cheaper\n\n*These figures are based on current PBS pricing. Your pharmacist can give you the exact cost for your situation.*", created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 330000).toISOString() },
 ];

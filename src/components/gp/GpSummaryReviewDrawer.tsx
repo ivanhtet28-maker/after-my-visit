@@ -129,7 +129,7 @@ const GpSummaryReviewDrawer = ({
           <SheetTitle>Review AI-generated summary</SheetTitle>
           <SheetDescription>
             Review the patient-readable summary our AI produced from the
-            transcript. Confirm to send it to the patient's AfterVisit app, or
+            transcript. Confirm to send it to the patient's Clarity Health app, or
             discard if it doesn't capture the consult correctly.
           </SheetDescription>
         </SheetHeader>

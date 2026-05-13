@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ const OnboardingPage = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite");
 
   const handleComplete = async () => {
     if (!disclaimer) {
@@ -43,13 +45,40 @@ const OnboardingPage = () => {
       current_medications: medications || null,
       onboarding_complete: true,
     }).eq("id", user.id);
-    setLoading(false);
+
     if (error) {
+      setLoading(false);
       toast.error("Failed to save profile");
-    } else {
-      toast.success("Welcome to Clarity Health!");
-      navigate("/dashboard");
+      return;
     }
+
+    if (inviteToken) {
+      const { data: claimData, error: claimError } =
+        await supabase.functions.invoke("claim-practitioner-invite", {
+          body: { token: inviteToken },
+        });
+      const claimErrMsg =
+        (claimData as { error?: string } | null)?.error ?? claimError?.message;
+      if (claimErrMsg) {
+        setLoading(false);
+        toast.error("Profile saved, but couldn't add practitioner", {
+          description: claimErrMsg,
+        });
+        navigate("/dashboard");
+        return;
+      }
+      setLoading(false);
+      const claimed = claimData as { practitioner?: { full_name?: string } };
+      toast.success(
+        `${claimed?.practitioner?.full_name ?? "Practitioner"} added to your care team`,
+      );
+      navigate("/dashboard");
+      return;
+    }
+
+    setLoading(false);
+    toast.success("Welcome to Clarity Health!");
+    navigate("/dashboard");
   };
 
   return (

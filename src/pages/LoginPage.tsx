@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ const LoginPage = () => {
   const [portal, setPortal] = useState<"patient" | "doctor">("patient");
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +27,11 @@ const LoginPage = () => {
       toast.error(error.message);
     } else {
       localStorage.setItem("clarity_portal", portal);
-      navigate(portal === "doctor" ? "/doctor/dashboard" : "/dashboard");
+      if (inviteToken && portal === "patient") {
+        navigate(`/care/${encodeURIComponent(inviteToken)}`);
+      } else {
+        navigate(portal === "doctor" ? "/doctor/dashboard" : "/dashboard");
+      }
     }
   };
 
@@ -66,7 +72,12 @@ const LoginPage = () => {
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="font-medium text-primary hover:underline">Sign up</Link>
+            <Link
+              to={inviteToken ? `/signup?invite=${encodeURIComponent(inviteToken)}` : "/signup"}
+              className="font-medium text-primary hover:underline"
+            >
+              Sign up
+            </Link>
           </p>
         </div>
       </div>

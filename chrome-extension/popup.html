@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clarity — Send Note</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="logo-mark"></span>
+      <span>Clarity Health</span>
+    </div>
+    <span class="who">Dr Helen Zhao</span>
+  </header>
+
+  <main>
+    <!-- Patient picker -->
+    <div class="field">
+      <label for="patient-input">Patient</label>
+      <div class="combobox" id="combobox">
+        <input
+          id="patient-input"
+          type="text"
+          autocomplete="off"
+          placeholder="Search patient name…"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+        />
+        <ul id="patient-list" class="listbox" role="listbox" hidden></ul>
+      </div>
+    </div>
+
+    <!-- Note textarea -->
+    <div class="field">
+      <label for="note-input">Consult notes or script</label>
+      <textarea
+        id="note-input"
+        rows="9"
+        placeholder="Paste the full consult transcript, script, or your shorthand. Minimum 30 characters."
+      ></textarea>
+      <div class="meta">
+        <span id="char-count">0 chars</span>
+        <span class="hint">Cmd/Ctrl+Enter to send</span>
+      </div>
+    </div>
+
+    <button type="button" id="send-btn" class="primary">Send to patient dashboard</button>
+
+    <!-- Status / result -->
+    <div id="status" class="status" hidden></div>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

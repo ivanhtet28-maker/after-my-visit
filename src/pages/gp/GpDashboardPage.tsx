@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDemoMode } from "@/hooks/useDemoMode";
+import { useAuth } from "@/hooks/useAuth";
+import { usePractitioner } from "@/hooks/usePractitioner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DEMO_CLINIC,
   DEMO_CLINIC_STATS,
@@ -9,21 +12,63 @@ import {
 import GpLayout from "@/components/GpLayout";
 import ConsultIntakeCard from "@/components/gp/ConsultIntakeCard";
 import { Button } from "@/components/ui/button";
-import { Users, Mic, UserCheck, QrCode } from "lucide-react";
+import { Users, Mic, UserCheck, QrCode, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const GpDashboardPage = () => {
   const { isDemoMode } = useDemoMode();
+  const { user } = useAuth();
+  const { practitioner, loading: practitionerLoading } = usePractitioner();
   const navigate = useNavigate();
 
-  const clinicName = isDemoMode ? DEMO_CLINIC.name : "Your Clinic";
+  // ALL useState calls must come before any conditional return — Rules of Hooks.
+  const [clinicNameReal, setClinicNameReal] = useState<string | null>(null);
+  const [activity, setActivity] = useState(
+    isDemoMode ? DEMO_CLINIC_ACTIVITY : [],
+  );
+  const [todayDelta, setTodayDelta] = useState(0);
+
+  // Defence in depth: if a real (non-demo) user lands here without a
+  // practitioner row, bounce them to onboarding. GpProtectedRoute already
+  // does this, but this page-level check protects against stale browser
+  // bundles where the route guard hasn't reloaded.
+  useEffect(() => {
+    if (!isDemoMode && !practitionerLoading && user && !practitioner) {
+      navigate("/gp/onboarding", { replace: true });
+    }
+  }, [isDemoMode, practitionerLoading, user, practitioner, navigate]);
+
+  // Pull the practitioner's clinic name (if attached) so the header shows
+  // their actual clinic, not "Your Clinic".
+  useEffect(() => {
+    if (isDemoMode || !practitioner?.clinic_id) {
+      setClinicNameReal(null);
+      return;
+    }
+    supabase
+      .from("clinics")
+      .select("name")
+      .eq("id", practitioner.clinic_id)
+      .maybeSingle()
+      .then(({ data }) => setClinicNameReal(data?.name ?? null));
+  }, [isDemoMode, practitioner?.clinic_id]);
+
+  if (!isDemoMode && (practitionerLoading || (user && !practitioner))) {
+    return (
+      <GpLayout>
+        <div className="flex justify-center p-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </GpLayout>
+    );
+  }
+
+  const clinicName = isDemoMode
+    ? DEMO_CLINIC.name
+    : clinicNameReal ?? (practitioner?.full_name ? `${practitioner.full_name}'s practice` : "Your practice");
   const baseStats = isDemoMode
     ? DEMO_CLINIC_STATS
     : { patients_this_month: 0, consults_today: 0, total_active_patients: 0 };
-  const baseActivity = isDemoMode ? DEMO_CLINIC_ACTIVITY : [];
-
-  const [activity, setActivity] = useState(baseActivity);
-  const [todayDelta, setTodayDelta] = useState(0);
 
   const stats = {
     ...baseStats,
@@ -53,7 +98,7 @@ const GpDashboardPage = () => {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-hero-subtle p-8">
           <div className="relative z-10">
             <h1 className="text-2xl font-bold text-foreground">{clinicName}</h1>
-            <p className="text-muted-foreground">GP Portal Dashboard</p>
+            <p className="text-muted-foreground">Practitioner Dashboard</p>
           </div>
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/5" />
           <div className="absolute -bottom-8 -left-8 h-28 w-28 rounded-full bg-accent/5" />

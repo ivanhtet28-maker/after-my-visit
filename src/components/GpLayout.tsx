@@ -37,7 +37,7 @@ function GpSidebar() {
           className={`flex h-16 items-center border-b px-4 ${collapsed ? "justify-center" : ""}`}
         >
           <span className="text-lg font-bold text-primary">
-            {collapsed ? "GP" : "AfterVisit GP"}
+            {collapsed ? "CH" : "Clarity Health"}
           </span>
         </div>
         <SidebarGroup>

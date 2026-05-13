@@ -84,7 +84,7 @@ const GpConsentSettingsPage = () => {
             Live Preview
           </h2>
           <p className="text-sm text-muted-foreground">
-            This is how patients will see the consent form in the AfterVisit app.
+            This is how patients will see the consent form in the Clarity Health app.
           </p>
           <div className="rounded-xl border bg-card p-6 shadow-card space-y-4">
             <p className="text-sm font-medium text-card-foreground">

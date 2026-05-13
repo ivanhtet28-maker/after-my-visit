@@ -8,7 +8,7 @@ export const DEMO_CLINIC = {
   phone: "(03) 9748 1234",
   logo_url: null,
   consent_form_text:
-    "I confirm that my doctor has been informed this consultation will be recorded and transcribed by AfterVisit. I understand the audio will be processed on AfterVisit's secure Australian servers and deleted after transcription is complete.",
+    "I confirm that my doctor has been informed this consultation will be recorded and transcribed by Clarity Health. I understand the audio will be processed on Clarity Health's secure Australian servers and deleted after transcription is complete.",
   require_gp_acknowledgement: true,
   created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
 };
@@ -62,7 +62,7 @@ export interface DemoClinicPatient {
 }
 
 export const DEMO_CLINIC_PATIENTS: DemoClinicPatient[] = [
-  { id: "p1", name: "Karen Mitchell", dob: "1968-03-12", medicare_last4: "4821" },
+  { id: "p1", name: "Jessica Mitchell", dob: "1968-03-12", medicare_last4: "4821" },
   { id: "p2", name: "Michael Tran", dob: "1982-11-04", medicare_last4: "6712" },
   { id: "p3", name: "Rachel O'Brien", dob: "1975-07-22", medicare_last4: "3398" },
   { id: "p4", name: "James Whittaker", dob: "1991-01-30", medicare_last4: "9015" },

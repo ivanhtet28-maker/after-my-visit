@@ -16,8 +16,8 @@ export const DEMO_DOCTOR = {
 
 export const DEMO_DOCTOR_PATIENTS = [
   {
-    id: "demo-karen-id",
-    first_name: "Karen",
+    id: "demo-jessica-id",
+    first_name: "Jessica",
     last_name: "Mitchell",
     age: 58,
     state: "VIC",
@@ -179,7 +179,7 @@ const PRIYA_VISITS = [
 // Get all visits across all patients for the doctor dashboard
 export function getDoctorVisitsForPatient(patientId: string) {
   switch (patientId) {
-    case "demo-karen-id":
+    case "demo-jessica-id":
       return DEMO_VISITS_V2;
     case "demo-patient-2":
       return JAMES_VISITS;
@@ -200,7 +200,7 @@ export function getPatientById(patientId: string) {
 }
 
 export const DEMO_ALL_DOCTOR_VISITS = [
-  ...DEMO_VISITS_V2.map((v) => ({ ...v, patient_name: "Karen Mitchell" })),
+  ...DEMO_VISITS_V2.map((v) => ({ ...v, patient_name: "Jessica Mitchell" })),
   ...JAMES_VISITS.map((v) => ({ ...v, patient_name: "James Thompson" })),
   ...PRIYA_VISITS.map((v) => ({ ...v, patient_name: "Priya Sharma" })),
 ].sort((a, b) => new Date(b.visit_date).getTime() - new Date(a.visit_date).getTime());

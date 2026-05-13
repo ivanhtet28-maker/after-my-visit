@@ -41,19 +41,19 @@ export interface GpDemoPatient {
 }
 
 export const GP_DEMO_DOCTOR = {
-  first_name: "Sarah",
-  last_name: "Chen",
+  first_name: "Helen",
+  last_name: "Zhao",
   title: "Dr",
   ahpra: "MED0001234567",
-  practice: "Bondi Junction Medical Centre",
-  state: "NSW",
-  email: "sarah.chen@bjmc.com.au",
+  practice: "Werribee Plaza Medical Centre",
+  state: "VIC",
+  email: "helen.zhao@werribeeplazamedical.com.au",
 };
 
 export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
   {
     id: "gp-pt-1",
-    first_name: "Karen",
+    first_name: "Jessica",
     last_name: "Mitchell",
     age: 58,
     gender: "Female",
@@ -76,8 +76,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-1a",
         visit_date: "2025-04-12",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "Routine diabetes review. HbA1c improved from 7.8% to 7.1%. BP well controlled.",
         chief_complaint: "3-monthly diabetes and BP review",
@@ -87,8 +87,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-1b",
         visit_date: "2025-01-08",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "HbA1c 7.8% — uptitrated Metformin to 1000mg BD.",
         chief_complaint: "Quarterly review",
@@ -126,8 +126,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-2a",
         visit_date: "2025-04-17",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "MHCP review. K10 down from 28 to 19. Continuing sertraline + CBT.",
         chief_complaint: "Mental Health Care Plan review",
@@ -164,8 +164,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-3a",
         visit_date: "2025-04-16",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "Reviewed after fall at home (no injury). Started falls prevention plan.",
         chief_complaint: "Fall at home 3 days ago",
@@ -176,8 +176,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-3b",
         visit_date: "2025-03-02",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "AF rate well controlled. eGFR stable at 42.",
         chief_complaint: "Quarterly review",
@@ -216,8 +216,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-4a",
         visit_date: "2025-04-14",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "24-week shared antenatal visit. Baby active, growth on track.",
         chief_complaint: "Routine antenatal review",
@@ -255,8 +255,8 @@ export const GP_DEMO_PATIENTS: GpDemoPatient[] = [
       {
         id: "gp-v-5a",
         visit_date: "2025-04-11",
-        doctor_name: "Dr Sarah Chen",
-        clinic_name: "Bondi Junction Medical Centre",
+        doctor_name: "Dr Helen Zhao",
+        clinic_name: "Werribee Plaza Medical Centre",
         visit_type: "gp",
         quick_summary: "Chronic pain review. Significant improvement on duloxetine + active rehab.",
         chief_complaint: "6-week chronic pain plan review",

@@ -182,10 +182,14 @@ const DashboardPage = () => {
                   className="flex cursor-pointer items-center justify-between rounded-xl border bg-card p-4 shadow-card transition-all hover:shadow-card-hover"
                   onClick={() => navigate(`/visit/${v.id}`)}
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium text-card-foreground">{v.doctor_name || "Unknown Doctor"}</p>
                     <p className="text-sm text-muted-foreground">{v.clinic_name} • {formatDate(v.visit_date)}</p>
-                    {(v.summary as any)?.quick_summary && (
+                    {!v.approved_at && (v.source === "native_recording" || v.source === "chrome_extension_paste") ? (
+                      <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+                        <Clock className="h-3 w-3" /> Awaiting GP approval
+                      </p>
+                    ) : (v.summary as any)?.quick_summary && (
                       <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{(v.summary as any).quick_summary}</p>
                     )}
                   </div>

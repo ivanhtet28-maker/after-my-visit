@@ -1,4 +1,4 @@
-project_id = "guoxobkrlefzivppfsuu"
+project_id = "ttzjdzfvhjgckekvermr"
 
 [functions.transcribe]
 verify_jwt = false
@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.chat]
 verify_jwt = false
+
+[functions.lookup-practitioner-invite]
+verify_jwt = false
+
+[functions.generate-practitioner-invite]
+verify_jwt = true
+
+[functions.claim-practitioner-invite]
+verify_jwt = true

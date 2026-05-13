@@ -59,7 +59,7 @@ const LandingPage = () => {
               <p className="mt-3 text-sm text-muted-foreground">No sign-up needed to explore the demo.</p>
             </div>
             <div className="flex items-center justify-center">
-              <img src={heroImage} alt="AfterVisit health companion illustration" className="w-full max-w-lg rounded-2xl shadow-card-hover" />
+              <img src={heroImage} alt="Clarity Health companion illustration" className="w-full max-w-lg rounded-2xl shadow-card-hover" />
             </div>
           </div>
         </div>

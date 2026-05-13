@@ -345,13 +345,13 @@ const NewVisitPage = () => {
               <div className="flex items-start gap-3">
                 <Checkbox id="consent-doctor" checked={consentDoctor} onCheckedChange={(c) => setConsentDoctor(!!c)} className="mt-0.5" />
                 <Label htmlFor="consent-doctor" className="text-sm leading-5 text-muted-foreground">
-                  I confirm that {doctorName ? doctorName : "my doctor"} has been informed this consultation will be recorded and transcribed by AfterVisit.
+                  I confirm that {doctorName ? doctorName : "my doctor"} has been informed this consultation will be recorded and transcribed by Clarity Health.
                 </Label>
               </div>
               <div className="flex items-start gap-3">
                 <Checkbox id="consent-processing" checked={consentProcessing} onCheckedChange={(c) => setConsentProcessing(!!c)} className="mt-0.5" />
                 <Label htmlFor="consent-processing" className="text-sm leading-5 text-muted-foreground">
-                  I understand the audio will be processed on AfterVisit's secure Australian servers and deleted after transcription is complete.
+                  I understand the audio will be processed on Clarity Health's secure Australian servers and deleted after transcription is complete.
                 </Label>
               </div>
             </div>

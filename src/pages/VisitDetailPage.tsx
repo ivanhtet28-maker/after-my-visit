@@ -11,18 +11,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  Stethoscope, FileText, Pill, ClipboardCheck, MessageSquare, Send, ArrowLeft, ChevronDown, Sparkles, AlertCircle, ListOrdered, Clipboard, AlertTriangle, BookOpen, HelpCircle, UserPlus,
+  Stethoscope, FileText, Pill, ClipboardCheck, MessageSquare, Send, ArrowLeft, ChevronDown, Sparkles, AlertCircle, Clipboard, AlertTriangle, BookOpen, HelpCircle, UserPlus, Clock, ShieldAlert,
 } from "lucide-react";
 import TrustedResourcesCard from "@/components/TrustedResourcesCard";
 import { createTermHighlighter } from "@/lib/highlightTerms";
@@ -221,12 +221,59 @@ const VisitDetailPage = () => {
   const summary = visit.summary as any;
   const highlightTerms = createTermHighlighter(summary?.medical_terms);
 
+  // GP-led visit awaiting practitioner approval — show waiting state
+  // instead of the (still-empty) summary sections.
+  const pendingApproval =
+    !visit.approved_at &&
+    (visit.source === "native_recording" || visit.source === "chrome_extension_paste");
+
+  if (pendingApproval) {
+    return (
+      <DashboardLayout>
+        <div className="mx-auto max-w-3xl space-y-4">
+          <Button variant="ghost" onClick={() => navigate("/visits")} className="gap-2 text-muted-foreground">
+            <ArrowLeft className="h-4 w-4" /> Back to visits
+          </Button>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center shadow-card">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+              <Clock className="h-6 w-6 text-amber-700" />
+            </div>
+            <h2 className="text-lg font-semibold text-amber-900">
+              {visit.doctor_name || "Your doctor"} is finalising your summary
+            </h2>
+            <p className="mt-2 text-sm text-amber-800">
+              We'll notify you the moment it's approved and ready to read.
+            </p>
+            <div className="mt-4 grid gap-1 text-xs text-amber-900/70">
+              <p>{visit.clinic_name}</p>
+              <p>{formatDate(visit.visit_date)}</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const unverified = visit.source === "patient_recorded" && !visit.approved_at;
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-3xl space-y-4">
         <Button variant="ghost" onClick={() => navigate("/visits")} className="gap-2 text-muted-foreground">
           <ArrowLeft className="h-4 w-4" /> Back to visits
         </Button>
+
+        {unverified && (
+          <Alert className="border-amber-300 bg-amber-50">
+            <ShieldAlert className="h-4 w-4 text-amber-700" />
+            <AlertDescription className="text-sm text-amber-900">
+              <strong>Unverified — not GP-approved.</strong> You recorded this
+              visit yourself. The summary hasn't been reviewed by the doctor.
+              Always confirm important details with your doctor before acting on
+              them.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* 1. Urgency Flags — red alert banner, only if present */}
         {summary?.urgency_flags?.length > 0 && (
@@ -296,32 +343,19 @@ const VisitDetailPage = () => {
         {summary?.plan && (
           <CollapsibleSection icon={Clipboard} title="Plan" defaultOpen onAskAI={() => askAI("Plan", "Explain the treatment plan from my visit")}>
             {Array.isArray(summary.plan) ? (
-              <ul className="space-y-2">
+              <ol className="space-y-3">
                 {summary.plan.map((item: string, i: number) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />{highlightTerms(item)}
+                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      {i + 1}
+                    </span>
+                    <span>{highlightTerms(item)}</span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             ) : (
               <p className="text-sm text-muted-foreground">{highlightTerms(summary.plan)}</p>
             )}
-          </CollapsibleSection>
-        )}
-
-        {/* 7. Doctor's Recommendations — numbered list */}
-        {summary?.doctors_recommendations?.length > 0 && (
-          <CollapsibleSection icon={ListOrdered} title="Doctor's Recommendations" defaultOpen onAskAI={() => askAI("Doctor's Recommendations", "Explain the doctor's recommendations")}>
-            <ol className="space-y-3">
-              {summary.doctors_recommendations.map((r: any, i: number) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                    {r.number || i + 1}
-                  </span>
-                  <span>{highlightTerms(r.text || r)}</span>
-                </li>
-              ))}
-            </ol>
           </CollapsibleSection>
         )}
 
@@ -464,16 +498,25 @@ const VisitDetailPage = () => {
         </div>
       </div>
 
-      {/* Ask AI Modal */}
-      <Dialog open={askModalOpen} onOpenChange={setAskModalOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+      {/* Ask AI — side chatbot drawer */}
+      <Sheet open={askModalOpen} onOpenChange={setAskModalOpen}>
+        <SheetContent
+          side="right"
+          className="flex w-full flex-col gap-0 p-0 sm:max-w-md"
+        >
+          <SheetHeader className="border-b bg-primary/5 px-5 py-4">
+            <SheetTitle className="flex items-center gap-2 text-left">
               <Sparkles className="h-5 w-5 text-primary" />
-              Ask AI — {askModalTitle}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+              <span className="flex flex-col">
+                <span className="text-base">Clarity Health AI</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {askModalTitle}
+                </span>
+              </span>
+            </SheetTitle>
+          </SheetHeader>
+
+          <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
             {askModalMessages.map((m, i) => (
               <div
                 key={i}
@@ -496,23 +539,26 @@ const VisitDetailPage = () => {
               </div>
             )}
           </div>
-          <div className="flex gap-2 border-t pt-3">
-            <Input
-              value={askModalInput}
-              onChange={(e) => setAskModalInput(e.target.value)}
-              placeholder="Ask a follow-up..."
-              onKeyDown={(e) => e.key === "Enter" && sendInModal()}
-              disabled={askModalLoading}
-            />
-            <Button size="icon" onClick={sendInModal} disabled={askModalLoading}>
-              <Send className="h-4 w-4" />
-            </Button>
+
+          <div className="border-t bg-background px-5 py-3">
+            <div className="flex gap-2">
+              <Input
+                value={askModalInput}
+                onChange={(e) => setAskModalInput(e.target.value)}
+                placeholder="Ask a follow-up..."
+                onKeyDown={(e) => e.key === "Enter" && sendInModal()}
+                disabled={askModalLoading}
+              />
+              <Button size="icon" onClick={sendInModal} disabled={askModalLoading}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="mt-2 text-center text-[10px] text-muted-foreground">
+              Clarity Health does not provide medical advice. Always verify with your doctor.
+            </p>
           </div>
-          <p className="text-center text-[10px] text-muted-foreground">
-            Clarity Health does not provide medical advice. Always verify with your doctor.
-          </p>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 };
