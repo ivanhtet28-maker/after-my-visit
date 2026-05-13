@@ -33,6 +33,7 @@ import GpQrCodePage from "./pages/gp/GpQrCodePage";
 import GpOnboardingPage from "./pages/gp/GpOnboardingPage";
 import GpSignupPage from "./pages/gp/GpSignupPage";
 import CareInvitePage from "./pages/CareInvitePage";
+import ForClinicsPage from "./pages/ForClinicsPage";
 import NotFound from "./pages/NotFound";
 import DoctorDashboardPage from "./pages/doctor/DoctorDashboardPage";
 import DoctorPatientsPage from "./pages/doctor/DoctorPatientsPage";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/for-clinics" element={<ForClinicsPage />} />
             <Route path="/care/:token" element={<CareInvitePage />} />
             <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

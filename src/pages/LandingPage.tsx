@@ -28,7 +28,7 @@ const LandingPage = () => {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <span className="text-xl font-bold text-primary">Clarity Health</span>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/gp")} className="hidden sm:inline-flex text-muted-foreground hover:text-primary">For GPs</Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/for-clinics")} className="hidden sm:inline-flex text-muted-foreground hover:text-primary">For GPs</Button>
             <Button variant="ghost" onClick={() => navigate("/login")}>Log in</Button>
             <Button variant="outline" onClick={() => navigate("/dashboard?demo=true")}>View Demo</Button>
             <Button onClick={() => navigate("/signup")}>Get Started</Button>

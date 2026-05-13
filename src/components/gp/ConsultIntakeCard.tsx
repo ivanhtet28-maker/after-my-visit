@@ -333,9 +333,16 @@ const ConsultIntakeCard = ({ onConsultGenerated }: Props) => {
         }
       }
 
+      // Fire email notification to the patient (non-blocking)
+      supabase.functions
+        .invoke("notify-patient", { body: { visit_id: visitId } })
+        .then(({ error: notifyErr }) => {
+          if (notifyErr) console.warn("notify-patient:", notifyErr.message);
+        });
+
       toast.success(`Sent to ${selectedPatient.name}`, {
         description:
-          "The patient will see this summary in their app on next refresh.",
+          "The patient will see this summary and receive an email notification.",
       });
       resetForm();
     } catch (err: any) {

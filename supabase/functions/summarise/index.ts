@@ -177,6 +177,18 @@ ${visit.transcript}`;
       await supabase.from("medications").insert(medInserts);
     }
 
+    // For patient-recorded visits (not GP-led), notify immediately since
+    // they skip the approval gate.
+    if (!isGpLed) {
+      try {
+        await supabase.functions.invoke("notify-patient", {
+          body: { visit_id },
+        });
+      } catch (notifyErr) {
+        console.warn("notify-patient call failed:", notifyErr);
+      }
+    }
+
     return new Response(JSON.stringify({ success: true, summary }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
