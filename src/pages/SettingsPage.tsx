@@ -39,6 +39,7 @@ const SettingsPage = () => {
     setSaving(true);
     const { error } = await supabase.from("profiles").update({
       first_name: profile.first_name,
+      last_name: profile.last_name,
       state: profile.state,
       age_range: profile.age_range,
       has_regular_gp: profile.has_regular_gp,
@@ -103,7 +104,10 @@ const SettingsPage = () => {
         <div className="rounded-xl border bg-card p-6 shadow-card">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">Profile</h2>
           <div className="space-y-4">
-            <div><Label>First name</Label><Input value={profile?.first_name ?? ""} onChange={(e) => setProfile({ ...profile, first_name: e.target.value })} /></div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div><Label>First name</Label><Input value={profile?.first_name ?? ""} onChange={(e) => setProfile({ ...profile, first_name: e.target.value })} /></div>
+              <div><Label>Last name</Label><Input value={profile?.last_name ?? ""} onChange={(e) => setProfile({ ...profile, last_name: e.target.value })} /></div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>State / Territory</Label>

@@ -17,6 +17,7 @@ const ageRanges = ["18-25", "26-35", "36-45", "46-55", "56-65", "65+"];
 const OnboardingPage = () => {
   const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [state, setState] = useState("");
   const [ageRange, setAgeRange] = useState("");
   const [hasRegularGP, setHasRegularGP] = useState(false);
@@ -38,6 +39,7 @@ const OnboardingPage = () => {
     setLoading(true);
     const { error } = await supabase.from("profiles").update({
       first_name: firstName,
+      last_name: lastName,
       state,
       age_range: ageRange,
       has_regular_gp: hasRegularGP,
@@ -100,6 +102,10 @@ const OnboardingPage = () => {
               <div>
                 <Label htmlFor="firstName">First name</Label>
                 <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Your first name" />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last name</Label>
+                <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Your last name" />
               </div>
               <div>
                 <Label>State / Territory</Label>

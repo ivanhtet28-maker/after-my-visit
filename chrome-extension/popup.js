@@ -1,66 +1,209 @@
-// Clarity Health GP note sender.
+// Clarity Health GP Chrome Extension — popup.js
 //
-// Pasted notes → paste-visit edge function → patient dashboard. Patient list is
-// hardcoded (1 real "Jessica Mitchell" + 3 filler names) so the searchable
-// dropdown looks realistic in a sales demo without needing a /patients API.
+// Authenticated GP flow:
+//   1. On open, check for stored session via background.js
+//   2. If no session → show login screen
+//   3. If session → fetch care-team patients, show main UI
+//   4. GP picks patient, pastes notes → paste-visit edge function
 
 const SUPABASE_URL = "https://pumdlueqoiyihpkpdjcd.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1bWRsdWVxb2l5aWhwa3BkamNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjcyMTUsImV4cCI6MjA5NDMwMzIxNX0.whuVBAg5YZU9Pv5k_T_dcw9_MU9O3wEuJrwyvkeC6mA";
-const DASHBOARD_ORIGIN = "https://app.clarityhealth.au";
-const DOCTOR_NAME = "Dr Helen Zhao";
-
-// Demo patient list. Jessica is the only one that resolves on the server; the
-// rest are visual filler so the dropdown feels real in a sales demo.
-const DEMO_PATIENTS = [
-  { name: "Jessica Mitchell",  dob: "1968-03-12", suburb: "Werribee",   primary: true  },
-  { name: "Margaret Chen",     dob: "1955-08-22", suburb: "Point Cook", primary: false },
-  { name: "David O'Brien",     dob: "1974-11-04", suburb: "Sunshine",   primary: false },
-  { name: "Priya Anand",       dob: "1982-06-30", suburb: "Footscray",  primary: false },
-];
+const DASHBOARD_ORIGIN = "https://clarityhealth.au";
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
-const patientInput = $("patient-input");
-const patientList  = $("patient-list");
-const noteInput    = $("note-input");
-const charCount    = $("char-count");
-const sendBtn      = $("send-btn");
-const statusEl     = $("status");
 
+// Screens
+const authScreen = $("auth-screen");
+const mainScreen = $("main-screen");
+const loadingScreen = $("loading-screen");
+
+// Auth elements
+const authEmail = $("auth-email");
+const authPassword = $("auth-password");
+const authBtn = $("auth-btn");
+const authStatus = $("auth-status");
+
+// Main elements
+const gpNameEl = $("gp-name");
+const logoutBtn = $("logout-btn");
+const patientInput = $("patient-input");
+const patientList = $("patient-list");
+const noPatientsHint = $("no-patients-hint");
+const visitTypeSelect = $("visit-type");
+const noteInput = $("note-input");
+const charCount = $("char-count");
+const sendBtn = $("send-btn");
+const statusEl = $("status");
+
+// State
+let currentSession = null;
+let careTeamPatients = [];
 let selectedPatient = null;
 let highlightedIdx = -1;
+
+// ---------- Screen switching ----------
+function showScreen(name) {
+  authScreen.hidden = name !== "auth";
+  mainScreen.hidden = name !== "main";
+  loadingScreen.hidden = name !== "loading";
+}
+
+// ---------- Init ----------
+async function init() {
+  showScreen("loading");
+
+  const resp = await chrome.runtime.sendMessage({ type: "GET_SESSION" });
+  if (resp?.ok && resp.session) {
+    currentSession = resp.session;
+    await enterMainScreen();
+  } else {
+    showScreen("auth");
+    authEmail.focus();
+  }
+}
+
+// ---------- Auth ----------
+authBtn.addEventListener("click", handleSignIn);
+authEmail.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") authPassword.focus();
+});
+authPassword.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleSignIn();
+});
+
+async function handleSignIn() {
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  if (!email || !password) {
+    showAuthStatus("err", "Enter your email and password.");
+    return;
+  }
+
+  authBtn.disabled = true;
+  authBtn.textContent = "Signing in…";
+  hideAuthStatus();
+
+  const resp = await chrome.runtime.sendMessage({
+    type: "SIGN_IN",
+    email,
+    password,
+  });
+
+  authBtn.disabled = false;
+  authBtn.textContent = "Sign in";
+
+  if (!resp?.ok) {
+    showAuthStatus("err", resp?.error || "Sign-in failed.");
+    return;
+  }
+
+  currentSession = resp.session;
+  await enterMainScreen();
+}
+
+function showAuthStatus(tone, text) {
+  authStatus.className = `status ${tone}`;
+  authStatus.textContent = text;
+  authStatus.hidden = false;
+}
+function hideAuthStatus() {
+  authStatus.hidden = true;
+}
+
+// ---------- Main screen ----------
+async function enterMainScreen() {
+  gpNameEl.textContent = currentSession.practitioner.full_name;
+  showScreen("main");
+
+  // Load care-team patients
+  await loadPatients();
+  patientInput.focus();
+}
+
+async function loadPatients() {
+  try {
+    const resp = await fetch(
+      `${SUPABASE_URL}/functions/v1/extension-patients`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+        body: JSON.stringify({}),
+      },
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      if (resp.status === 401) {
+        // Session expired — sign out
+        await chrome.runtime.sendMessage({ type: "SIGN_OUT" });
+        showScreen("auth");
+        showAuthStatus("info", "Session expired. Please sign in again.");
+        return;
+      }
+      console.error("Failed to load patients:", err);
+      careTeamPatients = [];
+    } else {
+      const data = await resp.json();
+      careTeamPatients = data.patients || [];
+    }
+  } catch (err) {
+    console.error("Load patients error:", err);
+    careTeamPatients = [];
+  }
+
+  noPatientsHint.hidden = careTeamPatients.length > 0;
+  sendBtn.disabled = false;
+}
 
 // ---------- Patient combobox ----------
 function filterPatients(q) {
   const needle = q.trim().toLowerCase();
-  if (!needle) return DEMO_PATIENTS;
-  return DEMO_PATIENTS.filter((p) =>
-    p.name.toLowerCase().includes(needle) ||
-    p.suburb.toLowerCase().includes(needle)
+  if (!needle) return careTeamPatients;
+  return careTeamPatients.filter(
+    (p) =>
+      p.name.toLowerCase().includes(needle) ||
+      (p.email && p.email.toLowerCase().includes(needle)),
   );
 }
 
 function renderPatientList(items) {
   patientList.innerHTML = "";
   highlightedIdx = -1;
-  if (items.length === 0) {
+
+  if (careTeamPatients.length === 0) {
     const li = document.createElement("li");
     li.className = "empty";
-    li.textContent = "No patients match. Demo includes 4 names.";
+    li.textContent = "No patients on your care team yet.";
     patientList.appendChild(li);
     patientList.hidden = false;
     patientInput.setAttribute("aria-expanded", "true");
     return;
   }
+
+  if (items.length === 0) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = "No patients match your search.";
+    patientList.appendChild(li);
+    patientList.hidden = false;
+    patientInput.setAttribute("aria-expanded", "true");
+    return;
+  }
+
   items.forEach((p, i) => {
     const li = document.createElement("li");
     li.setAttribute("role", "option");
     li.dataset.idx = String(i);
     li.innerHTML = `<span class="name">${escapeHtml(p.name)}</span>
-                    <span class="sub">DOB ${escapeHtml(p.dob)} · ${escapeHtml(p.suburb)}</span>`;
+                    <span class="sub">Joined ${escapeHtml(formatDate(p.granted_at))}</span>`;
     li.addEventListener("mousedown", (e) => {
-      e.preventDefault(); // keep input focus
+      e.preventDefault();
       pick(p);
     });
     patientList.appendChild(li);
@@ -84,19 +227,24 @@ patientInput.addEventListener("input", () => {
   renderPatientList(filterPatients(patientInput.value));
 });
 patientInput.addEventListener("blur", () => {
-  // Hide with a tick of delay so the mousedown handler on a list item can run.
-  setTimeout(() => { patientList.hidden = true; }, 100);
+  setTimeout(() => {
+    patientList.hidden = true;
+  }, 120);
 });
 patientInput.addEventListener("keydown", (e) => {
   const items = Array.from(patientList.querySelectorAll('li[role="option"]'));
   if (e.key === "ArrowDown") {
     e.preventDefault();
     highlightedIdx = Math.min(items.length - 1, highlightedIdx + 1);
-    items.forEach((el, i) => el.setAttribute("aria-selected", i === highlightedIdx ? "true" : "false"));
+    items.forEach((el, i) =>
+      el.setAttribute("aria-selected", i === highlightedIdx ? "true" : "false"),
+    );
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
     highlightedIdx = Math.max(0, highlightedIdx - 1);
-    items.forEach((el, i) => el.setAttribute("aria-selected", i === highlightedIdx ? "true" : "false"));
+    items.forEach((el, i) =>
+      el.setAttribute("aria-selected", i === highlightedIdx ? "true" : "false"),
+    );
   } else if (e.key === "Enter") {
     if (highlightedIdx >= 0 && items[highlightedIdx]) {
       e.preventDefault();
@@ -113,7 +261,6 @@ noteInput.addEventListener("input", () => {
   const n = noteInput.value.length;
   charCount.textContent = `${n} char${n === 1 ? "" : "s"}`;
 });
-
 noteInput.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
     e.preventDefault();
@@ -136,12 +283,6 @@ sendBtn.addEventListener("click", async () => {
     noteInput.focus();
     return;
   }
-  if (!selectedPatient.primary) {
-    showStatus("info",
-      `${selectedPatient.name} is a demo placeholder — only Jessica Mitchell is wired to a real Supabase profile. ` +
-      `Pick Jessica to actually send.`);
-    return;
-  }
 
   sendBtn.disabled = true;
   sendBtn.textContent = "Summarising + saving…";
@@ -151,14 +292,16 @@ sendBtn.addEventListener("click", async () => {
     const resp = await fetch(url, {
       method: "POST",
       headers: {
-        "content-type": "application/json",
-        "apikey": SUPABASE_KEY,
-        "authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${currentSession.access_token}`,
       },
       body: JSON.stringify({
+        patient_user_id: selectedPatient.user_id,
         patient_name: selectedPatient.name,
         raw_text: raw,
-        doctor_name: DOCTOR_NAME,
+        doctor_name: currentSession.practitioner.full_name,
+        visit_type: visitTypeSelect.value,
         dashboard_origin: DASHBOARD_ORIGIN,
       }),
     });
@@ -168,19 +311,41 @@ sendBtn.addEventListener("click", async () => {
       throw new Error(data.error || `HTTP ${resp.status}`);
     }
 
-    showStatus("ok",
-      `Sent to ${data.patient.first_name} ${data.patient.last_name}'s dashboard. ` +
-      `<a href="${data.dashboard_url}" target="_blank" rel="noopener">Open visit →</a>`,
+    showStatus(
+      "ok",
+      `Sent to ${escapeHtml(data.patient.first_name || selectedPatient.name)}'s dashboard. ` +
+        `<a href="${DASHBOARD_ORIGIN}/visit/${data.visit_id}" target="_blank" rel="noopener">Open visit →</a>`,
       true,
     );
     noteInput.value = "";
     charCount.textContent = "0 chars";
+    selectedPatient = null;
+    patientInput.value = "";
   } catch (err) {
-    showStatus("err", `Send failed: ${err.message || err}`);
+    if (err.message && err.message.includes("401")) {
+      showStatus("err", "Session expired. Please sign out and sign in again.");
+    } else {
+      showStatus("err", `Send failed: ${err.message || err}`);
+    }
   } finally {
     sendBtn.disabled = false;
     sendBtn.textContent = "Send to patient dashboard";
   }
+});
+
+// ---------- Logout ----------
+logoutBtn.addEventListener("click", async () => {
+  await chrome.runtime.sendMessage({ type: "SIGN_OUT" });
+  currentSession = null;
+  careTeamPatients = [];
+  selectedPatient = null;
+  patientInput.value = "";
+  noteInput.value = "";
+  charCount.textContent = "0 chars";
+  showScreen("auth");
+  authEmail.value = "";
+  authPassword.value = "";
+  authEmail.focus();
 });
 
 // ---------- Status helpers ----------
@@ -196,7 +361,7 @@ function hideStatus() {
   statusEl.className = "status";
 }
 
-// ---------- Misc ----------
+// ---------- Helpers ----------
 function escapeHtml(s) {
   return String(s)
     .replaceAll("&", "&amp;")
@@ -206,5 +371,15 @@ function escapeHtml(s) {
     .replaceAll("'", "&#39;");
 }
 
-// On open, focus the patient field so the demoer can just start typing.
-patientInput.focus();
+function formatDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+// ---------- Start ----------
+init();
