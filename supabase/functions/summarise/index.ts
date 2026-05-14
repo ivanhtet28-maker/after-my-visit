@@ -1,39 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SYSTEM_PROMPT } from "../_shared/ai-prompt.ts";
+import { createReminders } from "../_shared/create-reminders.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-const SYSTEM_PROMPT = `You are an Australian healthcare assistant that helps patients understand their doctor visits. You analyse visit transcripts and create structured, easy-to-understand summaries.
-
-Rules:
-- Use Australian English spelling (colour, organisation, specialise, etc.)
-- Never provide medical advice or diagnoses
-- Only summarise what was actually discussed in the transcript
-- Explain medical terms in plain English using parentheses, e.g. "hypertension (high blood pressure)"
-- Reference PBS (Pharmaceutical Benefits Scheme) for any medications mentioned
-- Reference Medicare item numbers if mentioned
-- Flag anything that sounds urgent with a ⚠️ prefix
-- Be warm, clear, and reassuring in tone
-- If something in the transcript is unclear or ambiguous, note it as "unclear from recording"
-
-Respond ONLY with a JSON object (no markdown, no backticks) in this exact structure:
-{
-  "quick_summary": "1-2 sentence overview of the visit",
-  "chief_complaint": "Why the patient visited",
-  "key_discussion_points": ["point 1", "point 2"],
-  "assessment": "What the doctor found or suspects, in plain English",
-  "plan": ["plan item 1", "plan item 2"],
-  "doctors_recommendations": [{"number": 1, "text": "recommendation text"}],
-  "action_items": [{"description": "what to do", "category": "medication|follow_up|test|lifestyle|referral", "due_date_suggestion": "e.g. Within 1 week"}],
-  "medications": [{"name": "medication name", "dosage": "dosage", "frequency": "how often", "explanation": "plain English what it does", "is_pbs": true}],
-  "referrals": [{"to": "specialist type", "reason": "why", "next_steps": "what patient should do"}],
-  "follow_up_questions": ["suggested question 1"],
-  "medical_terms": [{"term": "medical term", "explanation": "plain English explanation"}],
-  "urgency_flags": ["any urgent items"]
-}`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -123,9 +96,8 @@ ${visit.transcript}`;
     const aiResult = await aiResponse.json();
     const content = aiResult.choices?.[0]?.message?.content || "";
 
-    let summary;
+    let summary: Record<string, unknown>;
     try {
-      // Strip any markdown code fences if present
       const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       summary = JSON.parse(cleaned);
     } catch {
@@ -136,9 +108,7 @@ ${visit.transcript}`;
       });
     }
 
-    // Status depends on visit source:
-    // - GP-led visits (native_recording, chrome_extension_paste) await GP approval before patient sees them
-    // - patient_recorded fallback skips approval gate
+    // Status depends on visit source
     const isGpLed = visit.source === "native_recording" || visit.source === "chrome_extension_paste";
     const nextStatus = isGpLed ? "pending_approval" : "complete";
     const approvedAt = isGpLed ? null : new Date().toISOString();
@@ -149,21 +119,31 @@ ${visit.transcript}`;
       approved_at: approvedAt,
     }).eq("id", visit_id);
 
-    // Create action items
-    if (summary.action_items?.length) {
-      const actionInserts = summary.action_items.map((item: any) => ({
+    // Create action items & collect IDs for reminder creation
+    const actionItemIds = new Map<string, string>();
+    if (Array.isArray(summary.action_items) && summary.action_items.length) {
+      const actionInserts = (summary.action_items as any[]).map((item) => ({
         user_id: visit.user_id,
         visit_id: visit_id,
         description: item.description,
         category: item.category,
         status: "pending",
       }));
-      await supabase.from("action_items").insert(actionInserts);
+      const { data: insertedActions } = await supabase
+        .from("action_items")
+        .insert(actionInserts)
+        .select("id, description");
+      if (insertedActions) {
+        for (const row of insertedActions) {
+          actionItemIds.set(row.description, row.id);
+        }
+      }
     }
 
-    // Create medications
-    if (summary.medications?.length) {
-      const medInserts = summary.medications.map((med: any) => ({
+    // Create medications & collect IDs
+    const medicationIds = new Map<string, string>();
+    if (Array.isArray(summary.medications) && summary.medications.length) {
+      const medInserts = (summary.medications as any[]).map((med) => ({
         user_id: visit.user_id,
         visit_id: visit_id,
         name: med.name,
@@ -174,11 +154,33 @@ ${visit.transcript}`;
         prescribing_doctor: visit.doctor_name,
         date_prescribed: visit.visit_date,
       }));
-      await supabase.from("medications").insert(medInserts);
+      const { data: insertedMeds } = await supabase
+        .from("medications")
+        .insert(medInserts)
+        .select("id, name");
+      if (insertedMeds) {
+        for (const row of insertedMeds) {
+          medicationIds.set(row.name, row.id);
+        }
+      }
     }
 
-    // For patient-recorded visits (not GP-led), notify immediately since
-    // they skip the approval gate.
+    // Create smart reminders from AI-extracted schedule data
+    const reminderResult = await createReminders(
+      supabase,
+      visit.user_id,
+      visit_id,
+      visit.visit_date || new Date().toISOString(),
+      visit.doctor_name || "your doctor",
+      actionItemIds,
+      medicationIds,
+      summary,
+    );
+    if (reminderResult.errors.length) {
+      console.warn("Reminder creation warnings:", reminderResult.errors);
+    }
+
+    // For patient-recorded visits (not GP-led), notify immediately
     if (!isGpLed) {
       try {
         await supabase.functions.invoke("notify-patient", {
@@ -189,7 +191,11 @@ ${visit.transcript}`;
       }
     }
 
-    return new Response(JSON.stringify({ success: true, summary }), {
+    return new Response(JSON.stringify({
+      success: true,
+      summary,
+      reminders_created: reminderResult.created,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

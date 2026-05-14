@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
+import { NotificationToggle } from "@/components/notifications/NotificationBanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -154,6 +155,17 @@ const SettingsPage = () => {
               {clearingDemo ? "Clearing..." : "Clear All Data"}
             </Button>
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Notifications */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Notifications</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Manage medication and appointment reminders on this device.
+          </p>
+          <NotificationToggle />
         </div>
 
         <Separator />

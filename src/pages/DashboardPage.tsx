@@ -5,6 +5,8 @@ import { useDemoMode } from "@/hooks/useDemoMode";
 import { supabase } from "@/integrations/supabase/client";
 import { DEMO_PATIENT, DEMO_VISITS_V2, DEMO_ACTION_ITEMS_V2, DEMO_MEDICATIONS_V2 } from "@/data/demoPatient";
 import DashboardLayout from "@/components/DashboardLayout";
+import { NotificationBanner } from "@/components/notifications/NotificationBanner";
+import { RemindersCard } from "@/components/notifications/RemindersCard";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Calendar, ClipboardCheck, Clock, Pill, Mic, FileText, ListChecks, Hospital, Phone, Search, ClipboardList, ExternalLink } from "lucide-react";
 
@@ -100,6 +102,12 @@ const DashboardPage = () => {
             <span className="font-semibold">Showing sample data</span> — record your first visit to see your real dashboard.
           </div>
         )}
+        {/* Push notification banner */}
+        <NotificationBanner />
+
+        {/* Upcoming reminders */}
+        <RemindersCard />
+
         {/* Hero area */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-hero-subtle p-8">
           <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">
