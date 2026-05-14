@@ -333,6 +333,89 @@ sendBtn.addEventListener("click", async () => {
   }
 });
 
+// ---------- Email invite ----------
+const emailInviteToggle = $("email-invite-toggle");
+const emailInviteSection = $("email-invite-section");
+const inviteEmailInput = $("invite-email");
+const inviteNameInput = $("invite-name");
+const inviteSendBtn = $("invite-send-btn");
+const inviteStatusEl = $("invite-status");
+
+emailInviteToggle.addEventListener("click", () => {
+  const wasHidden = emailInviteSection.hidden;
+  emailInviteSection.hidden = !wasHidden;
+  emailInviteToggle.textContent = wasHidden
+    ? "Hide email invite ↑"
+    : "Patient not signed up? Send email invite ↓";
+  if (wasHidden) inviteEmailInput.focus();
+});
+
+inviteSendBtn.addEventListener("click", async () => {
+  const email = inviteEmailInput.value.trim();
+  const name = inviteNameInput.value.trim();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showInviteStatus("err", "Enter a valid email address.");
+    inviteEmailInput.focus();
+    return;
+  }
+
+  inviteSendBtn.disabled = true;
+  inviteSendBtn.textContent = "Sending…";
+  hideInviteStatus();
+
+  try {
+    const resp = await fetch(
+      `${SUPABASE_URL}/functions/v1/invite-patient-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+        body: JSON.stringify({
+          patient_email: email,
+          patient_name: name || undefined,
+        }),
+      },
+    );
+
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok || (!data.success && !data.already_on_care_team)) {
+      throw new Error(data.error || `HTTP ${resp.status}`);
+    }
+
+    if (data.already_on_care_team) {
+      showInviteStatus(
+        "info",
+        "This patient is already on your care team. Select them from the dropdown above.",
+      );
+    } else {
+      showInviteStatus(
+        "ok",
+        `Invite sent to ${escapeHtml(email)}! They'll appear in your patient list once they sign up.`,
+      );
+      inviteEmailInput.value = "";
+      inviteNameInput.value = "";
+    }
+  } catch (err) {
+    showInviteStatus("err", `Failed: ${err.message || err}`);
+  } finally {
+    inviteSendBtn.disabled = false;
+    inviteSendBtn.textContent = "Send invite email";
+  }
+});
+
+function showInviteStatus(tone, text) {
+  inviteStatusEl.className = `status ${tone}`;
+  inviteStatusEl.textContent = text;
+  inviteStatusEl.hidden = false;
+}
+function hideInviteStatus() {
+  inviteStatusEl.hidden = true;
+}
+
 // ---------- Logout ----------
 logoutBtn.addEventListener("click", async () => {
   await chrome.runtime.sendMessage({ type: "SIGN_OUT" });

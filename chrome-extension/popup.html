@@ -62,6 +62,21 @@
         <div id="no-patients-hint" class="hint" hidden>
           No patients yet. Share your QR code at <a href="https://clarityhealth.au/gp/qr-code" target="_blank" rel="noopener">clarityhealth.au/gp/qr-code</a>
         </div>
+        <button type="button" id="email-invite-toggle" class="ghost small invite-toggle">
+          Patient not signed up? Send email invite ↓
+        </button>
+        <div id="email-invite-section" class="email-invite" hidden>
+          <div class="field">
+            <label for="invite-email">Patient email</label>
+            <input id="invite-email" type="email" placeholder="patient@example.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="invite-name">Patient name (optional)</label>
+            <input id="invite-name" type="text" placeholder="First Last" />
+          </div>
+          <button type="button" id="invite-send-btn" class="primary small">Send invite email</button>
+          <div id="invite-status" class="status" hidden></div>
+        </div>
       </div>
 
       <!-- Visit type -->

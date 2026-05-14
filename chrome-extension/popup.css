@@ -158,6 +158,25 @@ select {
 }
 select:focus { border-color: var(--primary); }
 
+/* Email invite toggle */
+.invite-toggle { margin-top: -4px; font-size: 11px; color: var(--primary); text-align: left; }
+.invite-toggle:hover { text-decoration: underline; }
+.email-invite { border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: rgba(20, 160, 133, 0.03); display: flex; flex-direction: column; gap: 8px; }
+
+/* Auth input */
+input[type="email"], input[type="password"] {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+input[type="email"]:focus, input[type="password"]:focus { border-color: var(--primary); }
+
 /* Loading dot */
 .loading-dot { color: var(--primary); font-size: 24px; animation: pulse 1s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
