@@ -4,9 +4,9 @@
 // hardcoded (1 real "Jessica Mitchell" + 3 filler names) so the searchable
 // dropdown looks realistic in a sales demo without needing a /patients API.
 
-const SUPABASE_URL = "https://ttzjdzfvhjgckekvermr.supabase.co";
+const SUPABASE_URL = "https://pumdlueqoiyihpkpdjcd.supabase.co";
 const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0empkemZ2aGpnY2tla3Zlcm1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzNjQ0OTEsImV4cCI6MjA5Mzk0MDQ5MX0.5OrAB2NT0N5-3lSNC4dEmhU1bkc-4Zl9s1WptYiWkD4";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1bWRsdWVxb2l5aWhwa3BkamNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjcyMTUsImV4cCI6MjA5NDMwMzIxNX0.whuVBAg5YZU9Pv5k_T_dcw9_MU9O3wEuJrwyvkeC6mA";
 const DASHBOARD_ORIGIN = "https://app.clarityhealth.au";
 const DOCTOR_NAME = "Dr Helen Zhao";
 

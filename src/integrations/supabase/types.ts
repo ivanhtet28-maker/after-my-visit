@@ -424,6 +424,7 @@ export type Database = {
           first_name: string | null
           has_regular_gp: boolean | null
           id: string
+          last_name: string | null
           onboarding_complete: boolean | null
           ongoing_conditions: string | null
           role: string
@@ -438,6 +439,7 @@ export type Database = {
           first_name?: string | null
           has_regular_gp?: boolean | null
           id: string
+          last_name?: string | null
           onboarding_complete?: boolean | null
           ongoing_conditions?: string | null
           role?: string
@@ -452,6 +454,7 @@ export type Database = {
           first_name?: string | null
           has_regular_gp?: boolean | null
           id?: string
+          last_name?: string | null
           onboarding_complete?: boolean | null
           ongoing_conditions?: string | null
           role?: string
