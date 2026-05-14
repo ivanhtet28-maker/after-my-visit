@@ -5,24 +5,12 @@
 //   1. Resolves the patient via profiles.first_name + last_name (exact, case-insensitive).
 //   2. Calls Gemini to summarise the raw text into the same structured shape
 //      the dashboard already renders (mirrors `summarise-text`).
-//   3. Inserts visit + action_items + medications rows under that patient's
-//      user_id using the service-role key.
+//   3. Inserts visit + action_items + medications + scheduled_reminders rows.
 //   4. Returns the new visit_id so the extension can open the dashboard.
-//
-// CORS is wide open because Chrome extensions speak from a chrome-extension://
-// origin that's hard to allowlist statically.
-//
-// POST /functions/v1/paste-visit
-// { patient_name: "Jessica Mitchell",
-//   raw_text:     "Doctor: Morning Jessica, your BP is...",
-//   doctor_name?: "Dr Zhao",
-//   visit_type?:  "gp",
-//   dashboard_origin?: "https://app.clarityhealth.au"  // for the return URL only
-// }
-//
-// Response: { ok: true, visit_id, dashboard_url } | { ok: false, error }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { SYSTEM_PROMPT } from "../_shared/ai-prompt.ts";
+import { createReminders } from "../_shared/create-reminders.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,34 +18,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
-
-const SYSTEM_PROMPT = `You are an Australian healthcare assistant that helps patients understand their doctor visits. You analyse visit transcripts and create structured, easy-to-understand summaries.
-
-Rules:
-- Use Australian English spelling (colour, organisation, specialise, etc.)
-- Never provide medical advice or diagnoses
-- Only summarise what was actually discussed in the transcript
-- Explain medical terms in plain English using parentheses, e.g. "hypertension (high blood pressure)"
-- Reference PBS (Pharmaceutical Benefits Scheme) for any medications mentioned
-- Reference Medicare item numbers if mentioned
-- Flag anything that sounds urgent with a ⚠️ prefix
-- Be warm, clear, and reassuring in tone
-- If something in the transcript is unclear or ambiguous, note it as "unclear from recording"
-
-Respond ONLY with a JSON object (no markdown, no backticks) in this exact structure:
-{
-  "quick_summary": "1-2 sentence overview of the visit",
-  "chief_complaint": "Why the patient visited",
-  "key_discussion_points": ["point 1", "point 2"],
-  "assessment": "What the doctor found or suspects, in plain English",
-  "plan": ["plan item 1", "plan item 2"],
-  "action_items": [{"description": "what to do", "category": "medication|follow_up|test|lifestyle|referral", "due_date_suggestion": "e.g. Within 1 week"}],
-  "medications": [{"name": "medication name", "dosage": "dosage", "frequency": "how often", "explanation": "plain English what it does", "is_pbs": true}],
-  "referrals": [{"to": "specialist type", "reason": "why", "next_steps": "what patient should do"}],
-  "follow_up_questions": ["suggested question 1"],
-  "medical_terms": [{"term": "medical term", "explanation": "plain English explanation"}],
-  "urgency_flags": ["any urgent items"]
-}`;
 
 interface RequestBody {
   patient_name?: string;
@@ -85,9 +45,6 @@ Deno.serve(async (req) => {
   if (!patientName) return jsonResponse({ ok: false, error: "patient_name is required" }, 400);
   if (rawText.length < 30) return jsonResponse({ ok: false, error: "raw_text must be at least 30 characters" }, 400);
 
-  // Split "First Last" → first/last. We do an exact match (case-insensitive)
-  // so an unfortunate filler name like "John Smith" doesn't accidentally hit a
-  // real John Smith in the database.
   const nameParts = patientName.split(/\s+/);
   if (nameParts.length < 2) {
     return jsonResponse({ ok: false, error: "patient_name must be 'First Last'" }, 400);
@@ -124,11 +81,11 @@ Deno.serve(async (req) => {
   if (!profile) {
     return jsonResponse({
       ok: false,
-      error: `No patient named "${patientName}" found. For the demo, ensure Jessica Mitchell is registered as a patient in Supabase auth.`,
+      error: `No patient named "${patientName}" found. Ensure the patient is registered in Clarity Health.`,
     }, 404);
   }
 
-  // 2. Summarise via Gemini
+  // 2. Summarise via Gemini (using shared prompt with smart_reminder extraction)
   const userMessage = `Patient: ${profile.first_name} ${profile.last_name}
 ${body.doctor_name ? `Doctor: ${body.doctor_name}` : ""}
 ${body.visit_type ? `Visit type: ${body.visit_type}` : ""}
@@ -169,14 +126,17 @@ ${rawText}`;
     }, 422);
   }
 
-  // 3. Insert visit + child rows under the patient's user_id (service role bypasses RLS).
+  // 3. Insert visit
   const nowIso = new Date().toISOString();
+  const visitDate = nowIso.slice(0, 10);
+  const doctorName = body.doctor_name ?? "Dr Zhao";
+
   const visitInsert = {
     user_id: profile.id,
-    doctor_name: body.doctor_name ?? "Dr Zhao",
+    doctor_name: doctorName,
     clinic_name: "Pasted via Chrome extension",
     visit_type: body.visit_type ?? "gp",
-    visit_date: nowIso.slice(0, 10),
+    visit_date: visitDate,
     transcript: rawText,
     summary,
     status: "pending_approval",
@@ -194,34 +154,69 @@ ${rawText}`;
   }
   const visitId = visitRow.id;
 
-  // action_items
+  // 4. Action items (with ID collection for reminders)
+  const actionItemIds = new Map<string, string>();
   const actionItems = Array.isArray(summary.action_items) ? summary.action_items as Array<Record<string, unknown>> : [];
   if (actionItems.length) {
     const inserts = actionItems.map((a) => ({
       user_id: profile.id,
       visit_id: visitId,
-      description: a.description ?? "",
-      category: a.category ?? null,
+      description: (a.description as string) ?? "",
+      category: (a.category as string) ?? null,
       status: "pending",
     }));
-    const { error: actionErr } = await sb.from("action_items").insert(inserts);
+    const { data: insertedActions, error: actionErr } = await sb
+      .from("action_items")
+      .insert(inserts)
+      .select("id, description");
     if (actionErr) console.error("action_items insert failed:", actionErr.message);
+    if (insertedActions) {
+      for (const row of insertedActions) {
+        actionItemIds.set(row.description, row.id);
+      }
+    }
   }
 
-  // medications
+  // 5. Medications (with ID collection for reminders)
+  const medicationIds = new Map<string, string>();
   const meds = Array.isArray(summary.medications) ? summary.medications as Array<Record<string, unknown>> : [];
   if (meds.length) {
     const inserts = meds.map((m) => ({
       user_id: profile.id,
       visit_id: visitId,
-      name: m.name ?? "",
-      dosage: m.dosage ?? null,
-      frequency: m.frequency ?? null,
-      explanation: m.explanation ?? null,
+      name: (m.name as string) ?? "",
+      dosage: (m.dosage as string) ?? null,
+      frequency: (m.frequency as string) ?? null,
+      plain_explanation: (m.explanation as string) ?? null,
       is_pbs: typeof m.is_pbs === "boolean" ? m.is_pbs : null,
+      prescribing_doctor: doctorName,
+      date_prescribed: visitDate,
     }));
-    const { error: medErr } = await sb.from("medications").insert(inserts);
+    const { data: insertedMeds, error: medErr } = await sb
+      .from("medications")
+      .insert(inserts)
+      .select("id, name");
     if (medErr) console.error("medications insert failed:", medErr.message);
+    if (insertedMeds) {
+      for (const row of insertedMeds) {
+        medicationIds.set(row.name, row.id);
+      }
+    }
+  }
+
+  // 6. Create smart reminders
+  const reminderResult = await createReminders(
+    sb,
+    profile.id,
+    visitId,
+    visitDate,
+    doctorName,
+    actionItemIds,
+    medicationIds,
+    summary,
+  );
+  if (reminderResult.errors.length) {
+    console.warn("Reminder creation warnings:", reminderResult.errors);
   }
 
   const origin = body.dashboard_origin?.replace(/\/$/, "") ?? "";
@@ -234,6 +229,7 @@ ${rawText}`;
     visit_id: visitId,
     patient: { first_name: profile.first_name, last_name: profile.last_name },
     dashboard_url: dashboardUrl,
+    reminders_created: reminderResult.created,
   });
 });
 
