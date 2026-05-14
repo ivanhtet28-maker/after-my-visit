@@ -4,7 +4,9 @@ import { usePractitioner } from "@/hooks/usePractitioner";
 import { supabase } from "@/integrations/supabase/client";
 import GpLayout from "@/components/GpLayout";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Search, Loader2, Users, Mail, UserPlus, X } from "lucide-react";
 
 interface PatientRow {
   id: string;
@@ -56,6 +58,10 @@ const GpClinicPatientsPage = () => {
   const [search, setSearch] = useState("");
   const [patients, setPatients] = useState<PatientRow[]>([]);
   const [loading, setLoading] = useState(!isDemoMode);
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteSending, setInviteSending] = useState(false);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -138,6 +144,43 @@ const GpClinicPatientsPage = () => {
     return patients.filter((p) => p.name.toLowerCase().includes(q));
   }, [patients, search]);
 
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    setInviteSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "invite-patient-email",
+        {
+          body: {
+            patient_email: email,
+            patient_name: inviteName.trim() || undefined,
+          },
+        },
+      );
+      if (error || (data as { error?: string })?.error) {
+        throw new Error(
+          (data as { error?: string })?.error ?? error?.message ?? "Failed",
+        );
+      }
+      if ((data as { already_on_care_team?: boolean })?.already_on_care_team) {
+        toast.info("This patient is already on your care team.");
+      } else {
+        toast.success(`Invite sent to ${email}`);
+        setInviteEmail("");
+        setInviteName("");
+        setShowInvite(false);
+      }
+    } catch (err) {
+      toast.error((err as Error).message ?? "Failed to send invite");
+    } finally {
+      setInviteSending(false);
+    }
+  };
+
   const formatDate = (d: string | null) => {
     if (!d) return "—";
     const date = new Date(d);
@@ -159,16 +202,92 @@ const GpClinicPatientsPage = () => {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Filter by patient name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 min-h-[44px]"
-          />
+        {/* Search + Invite button row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Filter by patient name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 min-h-[44px]"
+            />
+          </div>
+          {!isDemoMode && (
+            <Button
+              onClick={() => setShowInvite(!showInvite)}
+              variant={showInvite ? "outline" : "default"}
+              className="gap-2 min-h-[44px]"
+            >
+              {showInvite ? (
+                <>
+                  <X className="h-4 w-4" /> Cancel
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" /> Invite Patient
+                </>
+              )}
+            </Button>
+          )}
         </div>
+
+        {/* Email invite form */}
+        {showInvite && (
+          <div className="rounded-xl border bg-card p-6 shadow-card space-y-4">
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-card-foreground">
+                Invite Patient by Email
+              </h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Send an email invite to a patient who hasn't signed up yet. They'll
+              be automatically added to your care team when they create their account.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="text-sm font-medium text-card-foreground">
+                  Patient email *
+                </label>
+                <Input
+                  type="email"
+                  placeholder="patient@example.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  className="mt-1 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-card-foreground">
+                  Patient name (optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="First Last"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                  className="mt-1 min-h-[44px]"
+                />
+              </div>
+            </div>
+            <Button
+              onClick={handleSendInvite}
+              disabled={inviteSending}
+              className="gap-2 min-h-[44px]"
+            >
+              {inviteSending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Sending…
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4" /> Send Invite
+                </>
+              )}
+            </Button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center gap-2 p-12 text-muted-foreground">
