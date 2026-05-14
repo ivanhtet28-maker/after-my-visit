@@ -30,7 +30,7 @@ const LoginPage = () => {
       if (inviteToken && portal === "patient") {
         navigate(`/care/${encodeURIComponent(inviteToken)}`);
       } else {
-        navigate(portal === "doctor" ? "/doctor/dashboard" : "/dashboard");
+        navigate(portal === "doctor" ? "/gp/dashboard" : "/dashboard");
       }
     }
   };
