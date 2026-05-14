@@ -1,4 +1,4 @@
-import { Home, Users, FileText, QrCode, LogOut } from "lucide-react";
+import { Home, Users, FileText, QrCode, Settings, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const gpItems = [
   { title: "Patients", url: "/gp/patients", icon: Users },
   { title: "Consent Settings", url: "/gp/consent-settings", icon: FileText },
   { title: "QR Code", url: "/gp/qr-code", icon: QrCode },
+  { title: "Settings", url: "/gp/settings", icon: Settings },
 ];
 
 function GpSidebar() {

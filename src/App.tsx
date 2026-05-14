@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { DemoModeProvider } from "@/hooks/useDemoMode";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -19,26 +19,17 @@ import ActionsPage from "./pages/ActionsPage";
 import MedicationsPage from "./pages/MedicationsPage";
 import SettingsPage from "./pages/SettingsPage";
 import LabResultsPage from "./pages/LabResultsPage";
-import GpTodayPage from "./pages/gp/GpTodayPage";
-import GpInboxPage from "./pages/gp/GpInboxPage";
-import GpPatientsPage from "./pages/gp/GpPatientsPage";
-import GpPatientDetailPage from "./pages/gp/GpPatientDetailPage";
-import GpAnalyticsPage from "./pages/gp/GpAnalyticsPage";
-import GpSettingsPage from "./pages/gp/GpSettingsPage";
 import GpLoginPage from "./pages/gp/GpLoginPage";
 import GpDashboardPage from "./pages/gp/GpDashboardPage";
 import GpClinicPatientsPage from "./pages/gp/GpClinicPatientsPage";
 import GpConsentSettingsPage from "./pages/gp/GpConsentSettingsPage";
 import GpQrCodePage from "./pages/gp/GpQrCodePage";
+import GpSettingsPage from "./pages/gp/GpSettingsPage";
 import GpOnboardingPage from "./pages/gp/GpOnboardingPage";
 import GpSignupPage from "./pages/gp/GpSignupPage";
 import CareInvitePage from "./pages/CareInvitePage";
 import ForClinicsPage from "./pages/ForClinicsPage";
 import NotFound from "./pages/NotFound";
-import DoctorDashboardPage from "./pages/doctor/DoctorDashboardPage";
-import DoctorPatientsPage from "./pages/doctor/DoctorPatientsPage";
-import DoctorPatientDetailPage from "./pages/doctor/DoctorPatientDetailPage";
-import DoctorVisitDetailPage from "./pages/doctor/DoctorVisitDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -66,27 +57,17 @@ const App = () => (
             <Route path="/lab-results" element={<ProtectedRoute><LabResultsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
-            {/* GP Portal — origin (Lovable) demo routes, no auth */}
-            <Route path="/gp" element={<GpTodayPage />} />
-            <Route path="/gp/inbox" element={<GpInboxPage />} />
-            <Route path="/gp/patients" element={<GpPatientsPage />} />
-            <Route path="/gp/patients/:id" element={<GpPatientDetailPage />} />
-            <Route path="/gp/analytics" element={<GpAnalyticsPage />} />
-            <Route path="/gp/settings" element={<GpSettingsPage />} />
-            {/* Doctor Portal — auth-gated */}
-            <Route path="/doctor/dashboard" element={<ProtectedRoute><DoctorDashboardPage /></ProtectedRoute>} />
-            <Route path="/doctor/patients" element={<ProtectedRoute><DoctorPatientsPage /></ProtectedRoute>} />
-            <Route path="/doctor/patient/:patientId" element={<ProtectedRoute><DoctorPatientDetailPage /></ProtectedRoute>} />
-            <Route path="/doctor/patient/:patientId/visit/:visitId" element={<ProtectedRoute><DoctorVisitDetailPage /></ProtectedRoute>} />
-
-            {/* GP Portal — spec routes (CLAUDE.md), gated by admin allowlist */}
+            {/* GP Portal — auth-gated */}
+            <Route path="/gp" element={<Navigate to="/gp/dashboard" replace />} />
             <Route path="/gp/login" element={<GpLoginPage />} />
             <Route path="/gp/signup" element={<GpSignupPage />} />
             <Route path="/gp/onboarding" element={<GpProtectedRoute requirePractitioner={false}><GpOnboardingPage /></GpProtectedRoute>} />
             <Route path="/gp/dashboard" element={<GpProtectedRoute><GpDashboardPage /></GpProtectedRoute>} />
-            <Route path="/gp/clinic-patients" element={<GpProtectedRoute><GpClinicPatientsPage /></GpProtectedRoute>} />
+            <Route path="/gp/patients" element={<GpProtectedRoute><GpClinicPatientsPage /></GpProtectedRoute>} />
+            <Route path="/gp/clinic-patients" element={<Navigate to="/gp/patients" replace />} />
             <Route path="/gp/consent-settings" element={<GpProtectedRoute><GpConsentSettingsPage /></GpProtectedRoute>} />
             <Route path="/gp/qr-code" element={<GpProtectedRoute><GpQrCodePage /></GpProtectedRoute>} />
+            <Route path="/gp/settings" element={<GpProtectedRoute><GpSettingsPage /></GpProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
