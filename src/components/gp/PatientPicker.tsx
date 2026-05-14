@@ -53,7 +53,7 @@ const PatientPicker = ({
       const { data, error: queryError } = await supabase
         .from("care_team_members")
         .select(
-          "id, granted_at, patient:profiles!care_team_members_patient_id_fkey(id, first_name)",
+          "id, granted_at, patient:profiles!care_team_members_patient_id_fkey(id, first_name, last_name)",
         )
         .eq("practitioner_id", practitionerId)
         .is("revoked_at", null)
@@ -69,11 +69,14 @@ const PatientPicker = ({
 
       const rows: CareTeamPatient[] = (data ?? [])
         .map((row) => {
-          const patient = (row as { patient: { id: string; first_name: string | null } | null }).patient;
+          const patient = (row as { patient: { id: string; first_name: string | null; last_name: string | null } | null }).patient;
           if (!patient) return null;
+          const firstName = patient.first_name?.trim() || "";
+          const lastName = patient.last_name?.trim() || "";
+          const name = [firstName, lastName].filter(Boolean).join(" ") || "Patient";
           return {
             user_id: patient.id,
-            name: patient.first_name?.trim() || "Patient",
+            name,
             granted_at: row.granted_at as string,
           };
         })

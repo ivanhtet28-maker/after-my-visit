@@ -6,50 +6,102 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <header>
-    <div class="logo">
-      <span class="logo-mark"></span>
-      <span>Clarity Health</span>
-    </div>
-    <span class="who">Dr Helen Zhao</span>
-  </header>
-
-  <main>
-    <!-- Patient picker -->
-    <div class="field">
-      <label for="patient-input">Patient</label>
-      <div class="combobox" id="combobox">
-        <input
-          id="patient-input"
-          type="text"
-          autocomplete="off"
-          placeholder="Search patient name…"
-          aria-haspopup="listbox"
-          aria-expanded="false"
-        />
-        <ul id="patient-list" class="listbox" role="listbox" hidden></ul>
+  <!-- ===== Auth Screen (shown when not signed in) ===== -->
+  <div id="auth-screen" hidden>
+    <header>
+      <div class="logo">
+        <span class="logo-mark"></span>
+        <span>Clarity Health</span>
       </div>
-    </div>
-
-    <!-- Note textarea -->
-    <div class="field">
-      <label for="note-input">Consult notes or script</label>
-      <textarea
-        id="note-input"
-        rows="9"
-        placeholder="Paste the full consult transcript, script, or your shorthand. Minimum 30 characters."
-      ></textarea>
-      <div class="meta">
-        <span id="char-count">0 chars</span>
-        <span class="hint">Cmd/Ctrl+Enter to send</span>
+      <span class="who">Practitioner sign-in</span>
+    </header>
+    <main>
+      <p class="auth-intro">Sign in with the same email you use at <strong>clarityhealth.au/gp</strong></p>
+      <div class="field">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" placeholder="you@clinic.com.au" autocomplete="email" />
       </div>
-    </div>
+      <div class="field">
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button type="button" id="auth-btn" class="primary">Sign in</button>
+      <div id="auth-status" class="status" hidden></div>
+      <p class="auth-footer">Don't have an account? <a href="https://clarityhealth.au/gp/signup" target="_blank" rel="noopener">Sign up →</a></p>
+    </main>
+  </div>
 
-    <button type="button" id="send-btn" class="primary">Send to patient dashboard</button>
+  <!-- ===== Main Screen (shown when signed in) ===== -->
+  <div id="main-screen" hidden>
+    <header>
+      <div class="logo">
+        <span class="logo-mark"></span>
+        <span>Clarity Health</span>
+      </div>
+      <div class="header-right">
+        <span class="who" id="gp-name"></span>
+        <button type="button" id="logout-btn" class="ghost small">Sign out</button>
+      </div>
+    </header>
 
-    <!-- Status / result -->
-    <div id="status" class="status" hidden></div>
-  </main>
+    <main>
+      <!-- Patient picker -->
+      <div class="field">
+        <label for="patient-input">Patient</label>
+        <div class="combobox" id="combobox">
+          <input
+            id="patient-input"
+            type="text"
+            autocomplete="off"
+            placeholder="Search your care-team patients…"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+          />
+          <ul id="patient-list" class="listbox" role="listbox" hidden></ul>
+        </div>
+        <div id="no-patients-hint" class="hint" hidden>
+          No patients yet. Share your QR code at <a href="https://clarityhealth.au/gp/qr-code" target="_blank" rel="noopener">clarityhealth.au/gp/qr-code</a>
+        </div>
+      </div>
+
+      <!-- Visit type -->
+      <div class="field">
+        <label for="visit-type">Visit type</label>
+        <select id="visit-type">
+          <option value="gp">GP</option>
+          <option value="specialist">Specialist</option>
+          <option value="allied_health">Allied Health</option>
+          <option value="telehealth">Telehealth</option>
+        </select>
+      </div>
+
+      <!-- Note textarea -->
+      <div class="field">
+        <label for="note-input">Consult notes or script</label>
+        <textarea
+          id="note-input"
+          rows="8"
+          placeholder="Paste the full consult transcript, script, or your shorthand. Minimum 30 characters."
+        ></textarea>
+        <div class="meta">
+          <span id="char-count">0 chars</span>
+          <span class="hint">Cmd/Ctrl+Enter to send</span>
+        </div>
+      </div>
+
+      <button type="button" id="send-btn" class="primary" disabled>Send to patient dashboard</button>
+
+      <!-- Status / result -->
+      <div id="status" class="status" hidden></div>
+    </main>
+  </div>
+
+  <!-- ===== Loading Screen ===== -->
+  <div id="loading-screen">
+    <main style="display:flex;align-items:center;justify-content:center;min-height:120px;">
+      <span class="loading-dot">●</span>
+    </main>
+  </div>
 
   <script src="popup.js"></script>
 </body>
