@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_URL = Deno.env.get("APP_URL") ?? "https://aftervisit.vercel.app";
+const APP_URL = Deno.env.get("APP_URL") ?? "https://app.clarityhealth.au";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const FROM_EMAIL = "Clarity Health <noreply@clarityhealth.com.au>";
 
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     // Fetch the visit with summary
     const { data: visit, error: visitError } = await supabase
       .from("visits")
-      .select("id, user_id, doctor_name, visit_date, clinic_name, summary, status")
+      .select("id, user_id, doctor_name, visit_date, clinic_name, summary, status, approved_at, created_by_practitioner_id")
       .eq("id", visit_id)
       .single();
 
@@ -51,8 +51,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Only notify for approved visits
-    if (visit.status !== "complete") {
+    // Only notify for approved visits (GP-led visits go pending_approval → complete on approval)
+    if (visit.status !== "complete" && !visit.approved_at) {
       return new Response(
         JSON.stringify({ error: "Visit not yet approved", status: visit.status }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -182,14 +182,23 @@ Deno.serve(async (req) => {
 
       const resendData = await resendRes.json();
 
-      // Log the notification
-      await supabase.from("access_logs").insert({
-        patient_id: visit.user_id,
-        accessor_id: visit.user_id,
-        visit_id: visit.id,
-        access_type: "email_notification",
-        details: { email_id: resendData.id, to: patientEmail },
-      });
+      // Log the notification in the audit trail
+      // Note: access_logs requires a practitioner_id. If the visit was created
+      // by a practitioner, log under them. Otherwise skip the log (patient-led).
+      // Wrapped in try/catch — audit log failure should not block the email.
+      if (visit.created_by_practitioner_id) {
+        try {
+          await supabase.from("access_logs").insert({
+            patient_id: visit.user_id,
+            practitioner_id: visit.created_by_practitioner_id,
+            visit_id: visit.id,
+            access_type: "visit_summary",
+            source: "care_team",
+          });
+        } catch (_) {
+          // Non-critical — email still sent successfully
+        }
+      }
 
       return new Response(
         JSON.stringify({ success: true, email_id: resendData.id }),

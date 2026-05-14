@@ -179,7 +179,7 @@ ${rawText}`;
     visit_date: nowIso.slice(0, 10),
     transcript: rawText,
     summary,
-    status: "complete",
+    status: "pending_approval",
     source: "chrome_extension_paste",
   };
 
