@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
 
     const { data: practitioner, error: practitionerError } = await admin
       .from("practitioners")
-      .select("id, full_name, profession, clinic_id")
+      .select("id, full_name, email, profession, clinic_id")
       .eq("user_id", userData.user.id)
       .maybeSingle();
 
@@ -283,6 +283,12 @@ Deno.serve(async (req) => {
 
     // ── Send via Resend ────────────────────────────────────────
     if (resendApiKey) {
+      // Use the GP's name in the "from" display and their email as "reply-to"
+      // so patients see who the email is from and can reply to the GP directly.
+      const gpEmail = practitioner.email || userData.user.email || "";
+      const fromName = gpName !== "Your doctor" ? `${gpName} via Clarity Health` : "Clarity Health";
+      const replyTo = gpEmail || undefined;
+
       const resendRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -290,7 +296,8 @@ Deno.serve(async (req) => {
           Authorization: `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: "Clarity Health <noreply@clarityhealth.com.au>",
+          from: `${fromName} <noreply@clarityhealth.au>`,
+          reply_to: replyTo,
           to: [patientEmail],
           subject: `${gpName} has shared your visit summary — Clarity Health`,
           html,
